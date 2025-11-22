@@ -1,6 +1,6 @@
 
 import express from "express";
-import { searchSlack } from "../modules/slack/services/slackService.ts";
+import { slackService } from "../modules/slack/services/slackService.js";
 import { searchLocal } from "../local/indexCache.ts";
 import { normalizeResults } from "../shared/utils/normalizeResults.js";
 import { summarizeSearchResults } from "../shared/services/summarizeService.ts";
@@ -13,7 +13,14 @@ router.get("/", async (req, res) => {
   try {
     const rawResults: any[] = [];
 
-    if (sources.includes("slack")) rawResults.push(...(await searchSlack(q)));
+    if (sources.includes("slack")) {
+      const token = process.env.SLACK_ACCESS_TOKEN;
+      if (!token) {
+        throw new Error("SLACK_ACCESS_TOKEN not configured");
+      }
+      const slackResults = await slackService.search(token, q);
+      rawResults.push(...slackResults);
+    }
     if (sources.includes("notion")) rawResults.push(...(await searchLocal(q)));
 
     // 1️⃣ Normalize all data into unified structure

@@ -1,7 +1,7 @@
-import express, { Router } from "express";
+import express from "express";
 import { slackService } from "../services/slackService.js";
 
-const router: Router = express.Router();
+const router = express.Router();
 
 router.get("/", async (req, res) => {
   try {

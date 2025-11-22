@@ -121,7 +121,7 @@ export default function SearchPage() {
           )}
           {sources.notion && (
             <p className="text-[10px] text-zinc-400 text-center animate-in fade-in slide-in-from-top-1">
-              Using configured Notion workspace
+              Searching local Notion cache
             </p>
           )}
         </div>
