@@ -1,6 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
-import searchRouter from "./routes/search";
+import searchRouter from "./routes/search.js";
 
 dotenv.config();
 
