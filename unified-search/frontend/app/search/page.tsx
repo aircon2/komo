@@ -5,8 +5,7 @@ import { Search, Slack, FileText, Link as LinkIcon } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Toggle } from "@/components/ui/toggle"
 import { Button } from "@/components/ui/button"
-import { AdminWorkflowsSearchResponse } from "@slack/web-api"
-import { searchSlack, SearchResult } from "../../../backend/src/modules/slack/services/slackService.js"
+import { searchSlack, searchNotion, SearchResult } from "@/api/search"
 export default function SearchPage() {
   const [query, setQuery] = React.useState("")
   const [results, setResults] = React.useState<SearchResult[]>([])
@@ -43,6 +42,12 @@ export default function SearchPage() {
         const slackResults = await searchSlack(query)
         console.log("Raw Slack Results:", slackResults)
         allResults = [...allResults, ...slackResults]
+      }
+
+      if (sources.notion) {
+        const notionResults = await searchNotion(query)
+        console.log("Raw Notion Results:", notionResults)
+        allResults = [...allResults, ...notionResults]
       }
 
       setResults(allResults)
@@ -112,6 +117,11 @@ export default function SearchPage() {
           {sources.slack && (
             <p className="text-[10px] text-zinc-400 text-center animate-in fade-in slide-in-from-top-1">
               Using configured Slack workspace
+            </p>
+          )}
+          {sources.notion && (
+            <p className="text-[10px] text-zinc-400 text-center animate-in fade-in slide-in-from-top-1">
+              Using configured Notion workspace
             </p>
           )}
         </div>
