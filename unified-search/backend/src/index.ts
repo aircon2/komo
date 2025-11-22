@@ -13,7 +13,7 @@ app.use(express.json());
 
 // simple test route
 app.use("/api/search", searchRouter);
-app.use("/api/summarize", summarize);
+
 
 
 

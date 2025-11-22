@@ -1,7 +1,7 @@
 import { Client } from "@notionhq/client";
-import db, { upsertPage } from "../../../local/indexCache.ts";
-import { getAllBlocks } from "../services/deepNotionService.ts"; 
-import { extractBlockText } from "../services/deepNotionService.ts";
+import db, { upsertPage } from "../../../local/indexCache.js";
+import { getAllBlocks } from "../services/deepNotionService.js"; 
+import { extractBlockText } from "../services/deepNotionService.js";
 
 const notion = new Client({ auth: process.env.NOTION_TOKEN! });
 

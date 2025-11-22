@@ -1,5 +1,5 @@
 import express, { Router } from "express";
-import { slackService } from "../services/slackService.js";
+import { searchSlack } from "../services/slackService.js";
 
 const router: Router = express.Router();
 
@@ -29,7 +29,7 @@ router.get("/", async (req, res) => {
     // const isValid = await slackService.verifyToken(token);
     // if (!isValid) { return res.status(401).json({ error: "Invalid token" }); }
 
-    const results = await slackService.search(token, query);
+    const results = await searchSlack(query);
     res.json(results);
   } catch (error) {
     console.error("Search route error:", error);
