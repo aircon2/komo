@@ -15,6 +15,10 @@ app.get("/api/greet", (req, res) => {
 });
 
 // example search route
+function example(query: string) {
+  const results = "You searched for: " + query;
+  return results;
+}
 
 app.get("/api/search", (req, res) => {
   const qParam = req.query.q;
