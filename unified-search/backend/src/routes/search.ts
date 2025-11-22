@@ -1,21 +1,20 @@
-// backend/index.js (Express example)
+// src/routes/search.ts
 import express from "express";
-import cors from "cors";
-import { searchLocal } from "../local/indexCache.ts";
-const app = express();
+const router = express.Router();
 
-app.use(cors());
+router.get("/", async (req, res) => {
+  const query = (req.query.q as string) || "";
 
-function example(query: string) {
-    const results = "You searched for: " + query;
-    return results;
-}
+  try {
+    // Lazy dynamic import fixes circular/loader timing problems
+    const { unifiedSearch } = await import("../shared/services/unifiedSearch.js");
 
-app.get("/api/search", (req, res) => {
-    const qParam = req.query.q;
-    const q = typeof qParam === "string" ? qParam : "";
-    const results = example(q);
+    const results = await unifiedSearch(query);
     res.json(results);
+  } catch (err) {
+    console.error("Unified search route error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
-app.listen(3000, () => console.log("Backend running on port 5000"));
+export default router;

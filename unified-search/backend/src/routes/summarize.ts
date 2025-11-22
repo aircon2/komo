@@ -1,12 +1,12 @@
 
 import express from "express";
-import { searchSlack } from "../modules/slack/services/slackService.ts";
-import { searchLocal } from "../local/indexCache.ts";
+import { searchSlack } from "../modules/slack/services/slackService.js";
+import { searchLocal } from "../local/indexCache.js";
 import { normalizeResults } from "../shared/utils/normalizeResults.js";
-import { summarizeSearchResults } from "../shared/services/summarizeService.ts";
+import { summarizeSearchResults } from "../shared/services/summarizeService.js";
 const router = express.Router();
 
-router.get("/summarize", async (req, res) => {
+router.get("/", async (req, res) => {
   const q = String(req.query.q || "");
   const sources = String(req.query.sources || "slack,notion").split(",");
 
