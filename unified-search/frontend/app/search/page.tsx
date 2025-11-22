@@ -5,8 +5,8 @@ import { Search, Slack, FileText, Link as LinkIcon } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Toggle } from "@/components/ui/toggle"
 import { Button } from "@/components/ui/button"
-import { searchSlack, SearchResult } from "@/api/search"
-
+import { AdminWorkflowsSearchResponse } from "@slack/web-api"
+import { searchSlack, SearchResult } from "../../../backend/src/modules/slack/services/slackService.js"
 export default function SearchPage() {
   const [query, setQuery] = React.useState("")
   const [results, setResults] = React.useState<SearchResult[]>([])

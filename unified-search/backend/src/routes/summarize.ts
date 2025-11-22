@@ -1,10 +1,9 @@
-// backend/src/routes/summarize.ts
-import express from "express";
-import { slackService } from "../modules/slack/services/slackService.js";
-import { notionService } from "../modules/notion/services/notionService.js";
-import { normalizeResults } from "../shared/utils/normalizeResults.js";
-import { summarizeSearchResults } from "../services/summarizerService";
 
+import express from "express";
+import { searchSlack } from "../modules/slack/services/slackService.ts";
+import { searchLocal } from "../local/indexCache.ts";
+import { normalizeResults } from "../shared/utils/normalizeResults.js";
+import { summarizeSearchResults } from "../shared/services/summarizeService.ts";
 const router = express.Router();
 
 router.get("/", async (req, res) => {
@@ -15,7 +14,7 @@ router.get("/", async (req, res) => {
     const rawResults: any[] = [];
 
     if (sources.includes("slack")) rawResults.push(...(await searchSlack(q)));
-    if (sources.includes("notion")) rawResults.push(...(await searchNotion(q)));
+    if (sources.includes("notion")) rawResults.push(...(await searchLocal(q)));
 
     // 1️⃣ Normalize all data into unified structure
     const normalized = normalizeResults(rawResults);
