@@ -10,5 +10,9 @@ export interface SearchResult {
     channel?: string; // For Slack
     fileType?: string; // For files
   };
+  thread?: {
+    text: string;
+    author: string;
+    date: string;
+  }[];
 }
-

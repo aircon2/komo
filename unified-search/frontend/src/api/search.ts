@@ -11,6 +11,11 @@ export interface SearchResult {
     date: string;
     channel?: string;
   };
+  thread?: {
+    text: string;
+    author: string;
+    date: string;
+  }[];
 }
 
 export async function searchSlack(query: string): Promise<SearchResult[]> {

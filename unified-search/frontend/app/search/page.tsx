@@ -146,6 +146,25 @@ export default function SearchPage() {
                          <span className="text-[10px] text-zinc-400">by {result.metadata.author}</span>
                       )}
                     </div>
+
+                    {/* Thread Messages */}
+                    {result.thread && result.thread.length > 0 && (
+                      <div className="mt-4 pl-4 border-l-2 border-zinc-100 space-y-3">
+                        {result.thread.map((msg, idx) => (
+                           <div key={idx} className="relative group/msg">
+                             <div className="flex items-start gap-2">
+                               <div className="min-w-0">
+                                 <div className="flex items-baseline gap-2">
+                                   <span className="text-xs font-medium text-zinc-700">{msg.author}</span>
+                                   <span className="text-[10px] text-zinc-400">{new Date(msg.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                 </div>
+                                 <p className="text-xs text-zinc-500 mt-0.5 leading-relaxed">{msg.text}</p>
+                               </div>
+                             </div>
+                           </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
