@@ -1,118 +1,99 @@
-
 import axios from "axios";
 import { config } from "../../../config/env.js";
-
-
-export interface SearchResult {
-  id: string;
-  source: "slack" | "notion" | "file";
-  title: string;
-  url: string;
-  content: string;
-  metadata: {
-    author?: string;
-    date: string;
-    channel?: string;
-  };
-  thread?: {
-    text: string;
-    author: string;
-    date: string;
-  }[];
-}
-
+import { SearchResult } from "../../../shared/types/SearchResult.js";
 
 const SLACK_API_URL = "https://slack.com/api/search.messages";
+const SLACK_THREAD_URL = "https://slack.com/api/conversations.replies";
 
 /**
- * Calls Slack's search.messages endpoint.
- * 
- * @param query - The search string (e.g. "meeting", "meta", etc.)
- * @returns An array of normalized SearchResult objects
+ * Fetch a message’s thread replies using channel + ts.
  */
-export async function searchSlack(query: string) {
+async function fetchThread(channelId: string, ts: string) {
   try {
-    console.log("Slack search called with query:", query);
-    const response = await axios.post(
-      SLACK_API_URL,
-      new URLSearchParams({ query }), // Slack expects x-www-form-urlencoded
-      {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          Authorization: `Bearer ${config.slackToken}`, // your xoxp-... token
-        },
-      }
-    );
+    const response = await axios.get(SLACK_THREAD_URL, {
+      headers: { Authorization: `Bearer ${config.slackToken}` },
+      params: { channel: channelId, ts },
+    });
 
     if (!response.data.ok) {
-      console.error("Slack API error:", response.data.error);
-      throw new Error(response.data.error);
+      console.warn(
+        "Slack conversations.replies error:",
+        response.data.error || "unknown"
+      );
+      return [];
     }
 
-    const matches = response.data.messages?.matches || [];
-    console.log("Raw Slack matches:", matches);
-
-    // ---- Normalize the Slack messages ----
-    return matches.map((m: any) => ({
-      source: "slack",
-      user: m.username,
-      channel: m.channel?.name,
-      text: m.text?.trim(),
-      link: m.permalink,
-      attachments:
-        m.attachments?.map((a: any) => ({
-          title: a.title,
-          url: a.original_url,
-        })) || [],
-      ts: m.ts,
+    // Skip index 0 because Slack returns the parent message again
+    const replies = response.data.messages.slice(1);
+    return replies.map((r: any) => ({
+      text: r.text || "",
+      author: r.user || "unknown",
+      date: new Date(parseFloat(r.ts) * 1000).toISOString(),
     }));
   } catch (err: any) {
-    console.error("Slack search failed:", err.message || err);
-
+    console.error("fetchThread error:", err.message);
     return [];
   }
 }
 
-// export interface NotionSearchResponse {
-//   hasMore: boolean;
-//   nextCursor: string | null;
-//   results: {
-//     source: "notion";
-//     id: string;
-//     title: string;
-//     url: string;
-//     icon?: string;
-//     content?: string; // Matching text snippet from page content
-//     lastEditedTime: string;
-//     createdTime: string;
-//   }[];
-// }
+/**
+ * Calls Slack's search.messages and includes threaded replies in the result.
+ */
+export async function searchSlack(query: string): Promise<SearchResult[]> {
+  try {
+    console.log("Slack search called with query:", query);
 
-// export async function searchNotion(query: string): Promise<SearchResult[]> {
-//   try {
-//     const response = await fetch(`${API_BASE_URL}/notion/search?q=${encodeURIComponent(query)}`);
+    const resp = await axios.post(
+      SLACK_API_URL,
+      new URLSearchParams({ query, count: "5" }),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Authorization: `Bearer ${config.slackToken}`,
+        },
+      }
+    );
 
-//     if (!response.ok) {
-//       const error = await response.json();
-//       throw new Error(error.error || "Failed to search Notion");
-//     }
+    if (!resp.data.ok) throw new Error(resp.data.error);
 
-//     const data: NotionSearchResponse = await response.json();
-    
-//     // Transform Notion results to match SearchResult interface
-//     return data.results.map((item) => ({
-//       id: item.id,
-//       source: "notion" as const,
-//       title: item.title,
-//       url: item.url,
-//       content: item.content || item.title, // Use content snippet if available, otherwise title
-//       metadata: {
-//         date: item.lastEditedTime,
-//       },
-//     }));
-//   } catch (error) {
-//     console.error("Notion search error:", error);
-//     return [];
-//   }
-// }
+    const matches = resp.data.messages?.matches || [];
+    console.log(`Slack returned ${matches.length} matches`);
 
+    // Fetch threads for every message in parallel
+    const results: SearchResult[] = await Promise.all(
+      matches.map(async (m: any) => {
+        const author = m.username || m.user || "Unknown";
+        const date = new Date(parseFloat(m.ts) * 1000).toISOString();
+        const channelId = m.channel?.id;
+        const thread =
+          channelId && m.ts ? await fetchThread(channelId, m.ts) : [];
+
+        return {
+          id: m.ts,
+          source: "slack",
+          title:
+            m.text?.split("\n")[0]?.slice(0, 60) || "Untitled Slack Message",
+          url: m.permalink,
+          content: m.text?.trim() || "",
+          metadata: {
+            author,
+            date,
+            channel: m.channel?.name,
+          },
+          thread,
+        };
+      })
+    );
+
+    // Pretty‑print threads for easier inspection
+    console.log(
+      "Normalized Slack results:",
+      JSON.stringify(results, null, 2)
+    );
+
+    return results;
+  } catch (err: any) {
+    console.error("Slack search failed:", err.message);
+    return [];
+  }
+}

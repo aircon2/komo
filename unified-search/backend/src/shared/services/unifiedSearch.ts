@@ -25,6 +25,7 @@ export async function unifiedSearch(
       (searchSlack(query) as unknown as Promise<RawResult[]>),
       (searchLocal(query) as unknown as Promise<RawResult[]>),
     ]);
+    console.log("Normalized Slack results:", slackRaw);
   } catch (err) {
     console.error("Unified search failed:", err);
   }
