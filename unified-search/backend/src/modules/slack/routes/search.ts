@@ -1,5 +1,5 @@
 import express, { Router } from "express";
-import { searchSlack } from "../services/slackService.js";
+import { searchSlack } from "../services/slackSearch.js";
 
 const router: Router = express.Router();
 

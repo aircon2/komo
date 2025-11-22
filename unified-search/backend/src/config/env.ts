@@ -14,4 +14,5 @@ export const config = {
   notionClientSecret: process.env.NOTION_CLIENT_SECRET,
   geminiApiKey: process.env.GEMINI_API_KEY!,
   port: process.env.PORT || 4000,
+  slackToken: process.env.SLACK_ACCESS_TOKEN!,
 };

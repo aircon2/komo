@@ -3,6 +3,7 @@ import express from "express";
 const router = express.Router();
 
 router.get("/", async (req, res) => {
+    console.log("Search route called with query:", req.query.q);
   const query = (req.query.q as string) || "";
 
   try {

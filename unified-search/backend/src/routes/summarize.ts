@@ -1,6 +1,6 @@
 
 import express from "express";
-import { searchSlack } from "../modules/slack/services/slackService.js";
+import { searchSlack } from "../modules/slack/services/slackSearch.js";
 import { searchLocal } from "../local/indexCache.js";
 import { normalizeResults } from "../shared/utils/normalizeResults.js";
 import { summarizeSearchResults } from "../shared/services/summarizeService.js";

@@ -1,4 +1,4 @@
-import { searchSlack } from "../../modules/slack/services/slackService.js";
+import { searchSlack } from "../../modules/slack/services/slackSearch.js";
 import { searchLocal } from "../../local/indexCache.js";
 import { normalizeResults, NormalizedRecord } from "../utils/normalizeResults.js";
 
@@ -22,7 +22,7 @@ export async function unifiedSearch(
 
   try {
     [slackRaw, localRaw] = await Promise.all([
-      (console.log(query) as unknown as Promise<RawResult[]>),
+      (searchSlack(query) as unknown as Promise<RawResult[]>),
       (searchLocal(query) as unknown as Promise<RawResult[]>),
     ]);
   } catch (err) {
