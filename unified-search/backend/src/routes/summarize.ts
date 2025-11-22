@@ -6,7 +6,7 @@ import { normalizeResults } from "../shared/utils/normalizeResults.js";
 import { summarizeSearchResults } from "../shared/services/summarizeService.ts";
 const router = express.Router();
 
-router.get("/", async (req, res) => {
+router.get("/summarize", async (req, res) => {
   const q = String(req.query.q || "");
   const sources = String(req.query.sources || "slack,notion").split(",");
 

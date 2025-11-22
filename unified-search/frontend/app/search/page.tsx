@@ -1,6 +1,8 @@
 "use client"
 
 import * as React from "react"
+import { useEffect } from "react"
+import { useState } from "react"
 import { Search, Slack, FileText, Link as LinkIcon } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Toggle } from "@/components/ui/toggle"
@@ -11,12 +13,27 @@ export default function SearchPage() {
   const [results, setResults] = React.useState<SearchResult[]>([])
   const [isLoading, setIsLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
+  const [test, setTest] = React.useState("")
   
   const [sources, setSources] = React.useState({
     slack: false,
     notion: false,
     others: false,
   })
+
+   useEffect(() => {
+    if (!query) return; // don’t call until we have input
+
+    fetch(`http://localhost:3000/api/search?q=${encodeURIComponent(query)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setTest(data);
+        setError(null);
+      })
+      .catch((err) => {
+        setError(err.message || "Fetch error");
+      });
+  }, [query]); // runs only when query changes
 
   const handleToggle = (source: keyof typeof sources) => {
     setSources((prev) => ({
@@ -83,6 +100,8 @@ export default function SearchPage() {
              <div className="absolute right-4 animate-spin h-4 w-4 border-2 border-zinc-400 border-t-transparent rounded-full"></div>
            )}
         </form>
+        
+        
 
         {/* Toggles */}
         <div className="flex flex-col items-center gap-6">
@@ -191,11 +210,11 @@ export default function SearchPage() {
         {/* DEBUG: Raw Results Dump */}
         <div className="mt-8 p-4 bg-zinc-100 rounded-lg overflow-auto max-h-60 text-[10px] font-mono text-zinc-600 border border-zinc-200">
             <div className="font-bold mb-2">DEBUG: Raw API Response (Length: {results.length})</div>
-            <pre>{JSON.stringify(results, null, 2)}</pre>
+            <pre>{JSON.stringify(test, null, 2)}</pre>
             <div className="mt-2 text-red-500">{error ? `Error: ${error}` : "No Error"}</div>
         </div>
 
-      </div>
+      </div>  
     </div>
   )
 }

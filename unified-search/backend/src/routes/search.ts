@@ -1,9 +1,21 @@
-import { Router } from "express";
+// backend/index.js (Express example)
+import express from "express";
+import cors from "cors";
+import { searchLocal } from "../local/indexCache.ts";
+const app = express();
 
-const router = Router();
+app.use(cors());
 
-router.get("/", async (req, res) => {
-  res.json({ message: "Search endpoint working!" });
+function example(query: string) {
+    const results = "You searched for: " + query;
+    return results;
+}
+
+app.get("/api/search", (req, res) => {
+    const qParam = req.query.q;
+    const q = typeof qParam === "string" ? qParam : "";
+    const results = example(q);
+    res.json(results);
 });
 
-export default router;
+app.listen(3000, () => console.log("Backend running on port 5000"));
