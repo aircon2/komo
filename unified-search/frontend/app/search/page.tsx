@@ -9,7 +9,6 @@ import { searchSlack, SearchResult } from "@/api/search"
 
 export default function SearchPage() {
   const [query, setQuery] = React.useState("")
-  const [slackToken, setSlackToken] = React.useState("")
   const [results, setResults] = React.useState<SearchResult[]>([])
   const [isLoading, setIsLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
@@ -38,10 +37,10 @@ export default function SearchPage() {
     try {
       let allResults: SearchResult[] = []
 
-      console.log("Starting search...", { query, sources, hasToken: !!slackToken })
+      console.log("Starting search...", { query, sources })
 
-      if (sources.slack && slackToken) {
-        const slackResults = await searchSlack(query, slackToken)
+      if (sources.slack) {
+        const slackResults = await searchSlack(query)
         console.log("Raw Slack Results:", slackResults)
         allResults = [...allResults, ...slackResults]
       }
@@ -109,20 +108,11 @@ export default function SearchPage() {
             </Toggle>
           </div>
 
-          {/* Token Input for Slack (only if Slack is selected) */}
+          {/* Token Input removed - using backend env */}
           {sources.slack && (
-            <div className="w-full max-w-md animate-in fade-in slide-in-from-top-2 duration-300">
-              <Input 
-                type="password" 
-                placeholder="Paste your Slack User Token (xoxp-...)" 
-                className="text-xs h-9 bg-zinc-50/50 border-dashed"
-                value={slackToken}
-                onChange={(e) => setSlackToken(e.target.value)}
-              />
-              <p className="text-[10px] text-zinc-400 mt-1 text-center">
-                Token is used locally and sent directly to backend API.
-              </p>
-            </div>
+            <p className="text-[10px] text-zinc-400 text-center animate-in fade-in slide-in-from-top-1">
+              Using configured Slack workspace
+            </p>
           )}
         </div>
 

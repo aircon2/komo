@@ -13,13 +13,9 @@ export interface SearchResult {
   };
 }
 
-export async function searchSlack(query: string, token: string): Promise<SearchResult[]> {
+export async function searchSlack(query: string): Promise<SearchResult[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/slack/search?q=${encodeURIComponent(query)}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await fetch(`${API_BASE_URL}/slack/search?q=${encodeURIComponent(query)}`);
 
     if (!response.ok) {
       const error = await response.json();
