@@ -1,11 +1,12 @@
 import express from "express";
-import { searchLocal } from "../../../local/indexCache.js";
+import { searchLocalWithSnippets } from "../../../local/indexCache.js";
 
 const router = express.Router();
 
 /**
  * GET /notion/local-search?q=<query>
- * Uses SQLite database (searchLocal) to search cached Notion pages
+ * Uses SQLite database (searchLocalWithSnippets) to search cached Notion pages
+ * Returns only relevant snippets around the keyword, not the entire page
  */
 router.get("/", async (req, res) => {
   try {
@@ -15,7 +16,7 @@ router.get("/", async (req, res) => {
       return res.status(400).json({ error: "Missing search query" });
     }
 
-    const results = searchLocal(q);
+    const results = searchLocalWithSnippets(q);
     
     // Transform SQL results to match SearchResult interface
     const formattedResults = results.map((row: any) => ({
@@ -23,7 +24,7 @@ router.get("/", async (req, res) => {
       source: "notion" as const,
       title: row.title || "Untitled",
       url: row.url || "",
-      content: row.content || "",
+      content: row.content || "", // This now contains only relevant snippets
       metadata: {
         date: row.lastEditedTime || new Date().toISOString(),
       },

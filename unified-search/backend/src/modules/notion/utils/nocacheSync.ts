@@ -32,6 +32,12 @@ export const buildOrUpdateCache = async () => {
 
     const blocks = await getAllBlocks(notion, page.id);
     const text = blocks.map(extractBlockText).join(" ");
+    
+    // Store blocks with their types for snippet extraction
+    const blocksWithTypes = blocks.map((block: any) => ({
+      type: block.type,
+      text: extractBlockText(block)
+    }));
 
     upsertPage({
       id: page.id,
@@ -39,6 +45,7 @@ export const buildOrUpdateCache = async () => {
       content: text,
       url: page.url,
       lastEditedTime: page.last_edited_time,
+      blocks: JSON.stringify(blocksWithTypes),
     });
   }
 
