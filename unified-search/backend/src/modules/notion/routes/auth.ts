@@ -14,3 +14,5 @@ router.get("/notion", (req, res) => {
 
   res.redirect(`https://api.notion.com/v1/oauth/authorize?${params.toString()}`);
 });
+
+export default router;
