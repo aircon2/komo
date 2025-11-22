@@ -4,10 +4,14 @@ import notionAuth from "./modules/notion/routes/auth.js";
 import notionSearch from "./modules/notion/routes/search.js";
 import slackAuth from "./modules/slack/routes/auth.js";
 import slackSearch from "./modules/slack/routes/search.js";
-import notionDeepSearch from "./modules/notion/routes/deep-search.js"; // 👈 add this line
+import notionDeepSearch from "./modules/notion/routes/deep-search.js"; 
+import { buildOrUpdateCache } from "../src/modules/notion/utils/nocacheSync.js";
 
 
 const app = express();
+buildOrUpdateCache()
+  .then(() => console.log("🔁 Cache ready"))
+  .catch(console.error);
 
 app.use("/notion/auth", notionAuth);
 app.use("/notion/search", notionSearch);

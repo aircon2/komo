@@ -69,7 +69,7 @@ export const deepSearchNotion = async (
 };
 
 // ---------- Helpers ----------
-async function getAllBlocks(notion: Client, blockId: string) {
+export async function getAllBlocks(notion: Client, blockId: string) {
     let all: any[] = [];
     let cursor: string | null = null;
   
@@ -121,7 +121,7 @@ async function getAllBlocks(notion: Client, blockId: string) {
     return [...all, ...nested];
   }
 
-function extractBlockText(block: any): string {
+export function extractBlockText(block: any): string {
   const type = block.type;
   const content = block[type]?.rich_text ?? [];
   return content.map((t: any) => t?.plain_text ?? "").join(" ");
