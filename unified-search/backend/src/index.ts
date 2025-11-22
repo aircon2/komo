@@ -1,3 +1,4 @@
+import "./config/env.js";          
 import express from "express";
 import notionAuth from "./modules/notion/routes/auth.js";
 import notionSearch from "./modules/notion/routes/search.js";
