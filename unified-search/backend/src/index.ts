@@ -1,14 +1,16 @@
 import express from "express";
-import dotenv from "dotenv";
-import searchRouter from "./routes/search.js";
-
-dotenv.config();
+import notionAuth from "./modules/notion/routes/auth.js";
+import notionSearch from "./modules/notion/routes/search.js";
+import slackAuth from "./modules/slack/routes/auth.js";
+import slackSearch from "./modules/slack/routes/search.js";
 
 const app = express();
-app.use(express.json());
 
-app.use("/search", searchRouter);
+app.use("/notion/auth", notionAuth);
+app.use("/notion/search", notionSearch);
+app.use("/slack/auth", slackAuth);
+app.use("/slack/search", slackSearch);
 
-app.listen(3001, () => {
-  console.log("Backend running on http://localhost:3001");
-});
+app.listen(3000, () =>
+  console.log("✨ Server running on http://localhost:3000")
+);
