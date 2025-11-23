@@ -11,7 +11,13 @@ import { buildOrUpdateCache } from "./modules/notion/utils/nocacheSync.js";
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-app.use(cors());
+// CORS configuration - allow requests from frontend
+app.use(cors({
+  origin: process.env.FRONTEND_URL 
+    ? [process.env.FRONTEND_URL, 'http://localhost:3000']
+    : ['http://localhost:3000', 'https://searchkomo.tech', 'https://www.searchkomo.tech'],
+  credentials: true,
+}));
 app.use(express.json());
 
 // simple test route

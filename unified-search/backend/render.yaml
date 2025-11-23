@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: komo-backend
+    env: node
+    buildCommand: npm install
+    startCommand: npm run dev
+    envVars:
+      - key: SLACK_ACCESS_TOKEN
+        sync: false
+      - key: NOTION_TOKEN
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: PORT
+        value: 4000
+      - key: FRONTEND_URL
+        value: https://searchkomo.tech
+

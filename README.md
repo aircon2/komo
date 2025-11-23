@@ -52,14 +52,16 @@ Think of it as **cmd-f for your entire workspace** — but smarter.
 
 ## 🚀 Getting Started
 
-### Prerequisites
+### Local Development
+
+#### Prerequisites
 - Node.js >= 20.9.0
 - npm or yarn
 - Slack API token
 - Notion API token
 - Google Gemini API key
 
-### Installation
+#### Installation
 
 1. **Clone the repository**
    ```bash
@@ -92,7 +94,7 @@ Think of it as **cmd-f for your entire workspace** — but smarter.
    NEXT_PUBLIC_API_URL=http://localhost:4000
    ```
 
-### Running the Application
+#### Running the Application
 
 1. **Start the backend server**
    ```bash
@@ -109,6 +111,19 @@ Think of it as **cmd-f for your entire workspace** — but smarter.
    Frontend will run on `http://localhost:3000`
 
 3. **Open your browser** and navigate to `http://localhost:3000`
+
+### 🚀 Production Deployment
+
+**Live at**: [searchkomo.tech](https://searchkomo.tech)
+
+For deployment instructions, see:
+- **[QUICK_DEPLOY.md](./QUICK_DEPLOY.md)** - Fast 15-minute deployment guide
+- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Detailed deployment documentation
+
+**Quick Summary**:
+- Frontend: Deploy to [Vercel](https://vercel.com) (Next.js)
+- Backend: Deploy to [Railway](https://railway.app) or [Render](https://render.com) (Express + SQLite)
+- Domain: Configure `searchkomo.tech` in Vercel dashboard
 
 ## 🎮 Usage
 

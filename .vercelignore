@@ -1,0 +1,11 @@
+node_modules
+.git
+.env
+.env.local
+*.db
+*.db-shm
+*.db-wal
+unified-search/backend
+README.md
+DEPLOYMENT.md
+
