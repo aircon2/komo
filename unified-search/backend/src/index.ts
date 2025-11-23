@@ -1,4 +1,4 @@
-// src/index.ts
+import "./config/env.js";
 import express from "express";
 import cors from "cors";
 import searchRouter from "./routes/search.js";
