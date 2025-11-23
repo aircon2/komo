@@ -293,7 +293,7 @@ export function Dashboard({ searchQuery, activeApps, onBack, onSearchChange }: D
                 <p className="font-['Hanken_Grotesk:Regular',sans-serif] text-[15px] text-[#8e8e93] mb-3">
                   This space is all clear!
                 </p>
-                <img src={imgMascot} alt="Cloud" className="w-[80px] h-auto mb-3" />
+                <img src={imgMascot.src} alt="Cloud" className="w-[80px] h-auto mb-3" />
                 <p className="font-['Hanken_Grotesk:Regular',sans-serif] text-[15px] text-[#8e8e93]">
                   Try selecting a search result to explore.
                 </p>

@@ -1,4 +1,4 @@
-import { motion } from 'motion/react';
+import { motion } from "framer-motion";
 import svgPaths from '../imports/svg-hiz6enx16i';
 
 function CloudBodyStatic() {
