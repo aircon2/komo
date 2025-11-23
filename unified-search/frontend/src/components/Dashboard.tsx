@@ -5,6 +5,7 @@ import { SlackPopup } from "./SlackPopup";
 import { CornerDownLeft, ArrowLeft } from "lucide-react";
 import sadcloud from "../assets/sadcloud.png";
 import { extractTextSnippet, highlightText } from "../utils/textSnippet";
+import { Skeleton } from "./ui/skeleton";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -74,6 +75,7 @@ export function Dashboard({ searchQuery, activeApps, onBack, onSearchChange }: D
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [allBackendResults, setAllBackendResults] = useState<BackendSearchResult[]>([]); // Store all backend results to reconstruct threads
   const [summary, setSummary] = useState<string>("");
+  const [summaryKey, setSummaryKey] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -224,6 +226,10 @@ export function Dashboard({ searchQuery, activeApps, onBack, onSearchChange }: D
         }
         
         setSummary(summaryText);
+        // Update key to retrigger animation when summary appears
+        if (summaryText) {
+          setSummaryKey(prev => prev + 1);
+        }
       } catch (err: any) {
         // Don't show error if request was aborted (user typed new character)
         if (err.name === 'AbortError') {
@@ -406,16 +412,17 @@ export function Dashboard({ searchQuery, activeApps, onBack, onSearchChange }: D
               </div>
             ) : (
               <div className="flex flex-col gap-[10px]">
-                {                      filteredResults.map(result => (
-                        <SearchResultItem
-                          key={result.id}
-                          type={result.type}
-                          message={result.message}
-                          date={result.date}
-                          link={result.link}
-                          isSelected={effectiveSelectedResult === result.id}
-                          onClick={() => handleResultClick(result)}
-                        />
+                {                      filteredResults.map((result, index) => (
+                        <div key={result.id} className="dashboard-item-delayed">
+                          <SearchResultItem
+                            type={result.type}
+                            message={result.message}
+                            date={result.date}
+                            link={result.link}
+                            isSelected={effectiveSelectedResult === result.id}
+                            onClick={() => handleResultClick(result)}
+                          />
+                        </div>
                       ))}
               </div>
             )}
@@ -438,22 +445,51 @@ export function Dashboard({ searchQuery, activeApps, onBack, onSearchChange }: D
 
           {/* Summary content */}
           <div className="absolute left-[30px] top-[90px] right-[30px] max-h-[38%] overflow-y-auto">
-            {loading ? (
-              <div className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal text-[13px] text-[#8e8e93]">
-                Loading summary...
+            {loading || (!summary && !error && searchQuery.trim()) ? (
+              <div className="dashboard-item space-y-6">
+                {/* Skeleton for summary - mimics the structure with topic + summary paragraphs */}
+                <div className="space-y-3">
+                  <Skeleton className="h-5 w-40 bg-[#e0e0e0]" /> {/* Topic skeleton - slightly taller */}
+                  <div className="space-y-2 pl-2">
+                    <Skeleton className="h-3.5 w-full bg-[#e8e8e8]" />
+                    <Skeleton className="h-3.5 w-full bg-[#e8e8e8]" />
+                    <Skeleton className="h-3.5 w-4/5 bg-[#e8e8e8]" />
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <Skeleton className="h-5 w-36 bg-[#e0e0e0]" /> {/* Topic skeleton */}
+                  <div className="space-y-2 pl-2">
+                    <Skeleton className="h-3.5 w-full bg-[#e8e8e8]" />
+                    <Skeleton className="h-3.5 w-full bg-[#e8e8e8]" />
+                    <Skeleton className="h-3.5 w-5/6 bg-[#e8e8e8]" />
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <Skeleton className="h-5 w-44 bg-[#e0e0e0]" /> {/* Topic skeleton */}
+                  <div className="space-y-2 pl-2">
+                    <Skeleton className="h-3.5 w-full bg-[#e8e8e8]" />
+                    <Skeleton className="h-3.5 w-4/5 bg-[#e8e8e8]" />
+                  </div>
+                </div>
               </div>
             ) : error ? (
-              <div className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal text-[13px] text-red-500">
-                Error: {error}
+              <div className="dashboard-item">
+                <div className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal text-[13px] text-red-500">
+                  Error: {error}
+                </div>
               </div>
             ) : summary ? (
-              <div
-                className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal text-[13px] text-black leading-[1.5]"
-                dangerouslySetInnerHTML={{ __html: summary }}
-              />
+              <div key={`summary-${summaryKey}`} className="dashboard-item">
+                <div
+                  className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal text-[13px] text-black leading-[1.5]"
+                  dangerouslySetInnerHTML={{ __html: summary }}
+                />
+              </div>
             ) : (
-              <div className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal text-[13px] text-[#8e8e93]">
-                No summary available. Try searching for something.
+              <div className="dashboard-item">
+                <div className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal text-[13px] text-[#8e8e93]">
+                  No summary available. Try searching for something.
+                </div>
               </div>
             )}
           </div>
@@ -481,49 +517,51 @@ export function Dashboard({ searchQuery, activeApps, onBack, onSearchChange }: D
 
           {/* Information content */}
           <div className="absolute left-[30px] top-[calc(58%+85px)] right-[30px] bottom-[20px]">
-            {effectiveSelectedResult ? (() => {
-              const result = filteredResults.find(r => r.id === effectiveSelectedResult);
-              if (!result) return null;
-              
-              return (
-                <div className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal text-[13px] text-[#8e8e93] leading-[1.8] space-y-1">
-                  {result.metadata?.channel && (
-                    <div className="flex justify-between">
-                      <span>channel name</span>
-                      <span className="text-black">#{result.metadata.channel}</span>
-                    </div>
-                  )}
-                  {result.metadata?.title && (
-                    <div className="flex justify-between">
-                      <span>page title</span>
-                      <span className="text-black">{result.metadata.title}</span>
-                    </div>
-                  )}
-                  {result.metadata?.author && (
-                    <div className="flex justify-between">
-                      <span>from</span>
-                      <span className="text-black">{result.metadata.author}</span>
-                    </div>
-                  )}
-                  {result.date && (
-                    <div className="flex justify-between">
-                      <span>posted</span>
-                      <span className="text-black">{result.date}</span>
-                    </div>
-                  )}
-                </div>
-              );
-            })() : (
-            <div className="flex flex-col items-center justify-center h-full max-h-[180px]">
-              <p className="font-['Hanken_Grotesk:Regular',sans-serif] text-[15px] text-[#8e8e93] mb-3">
-                this space is all clear!
-              </p>
-              <img src={sadcloud.src} alt="Sad Cloud" className="w-[80px] h-[80px] object-contain mb-3" />
-              <p className="font-['Hanken_Grotesk:Regular',sans-serif] text-[15px] text-[#8e8e93]">
-                try selecting a search result to explore.
-              </p>
+            <div className="dashboard-item">
+              {effectiveSelectedResult ? (() => {
+                const result = filteredResults.find(r => r.id === effectiveSelectedResult);
+                if (!result) return null;
+                
+                return (
+                  <div className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal text-[13px] text-[#8e8e93] leading-[1.8] space-y-1">
+                    {result.metadata?.channel && (
+                      <div className="flex justify-between">
+                        <span>channel name</span>
+                        <span className="text-black">#{result.metadata.channel}</span>
+                      </div>
+                    )}
+                    {result.metadata?.title && (
+                      <div className="flex justify-between">
+                        <span>page title</span>
+                        <span className="text-black">{result.metadata.title}</span>
+                      </div>
+                    )}
+                    {result.metadata?.author && (
+                      <div className="flex justify-between">
+                        <span>from</span>
+                        <span className="text-black">{result.metadata.author}</span>
+                      </div>
+                    )}
+                    {result.date && (
+                      <div className="flex justify-between">
+                        <span>posted</span>
+                        <span className="text-black">{result.date}</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })() : (
+              <div className="flex flex-col items-center justify-center h-full max-h-[180px]">
+                <p className="font-['Hanken_Grotesk:Regular',sans-serif] text-[15px] text-[#8e8e93] mb-3">
+                  this space is all clear!
+                </p>
+                <img src={sadcloud.src} alt="Sad Cloud" className="w-[80px] h-[80px] object-contain mb-3" />
+                <p className="font-['Hanken_Grotesk:Regular',sans-serif] text-[15px] text-[#8e8e93]">
+                  try selecting a search result to explore.
+                </p>
+              </div>
+            )}
             </div>
-          )}
           </div>
         </div>
       </div>

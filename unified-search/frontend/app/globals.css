@@ -1,13 +1,15 @@
 @import "tailwindcss";
 
 @keyframes glow {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.5;
     box-shadow: 0 0 10px rgba(5, 27, 120, 0.5), 0 0 20px rgba(5, 27, 120, 0.3);
   }
   50% {
     opacity: 1;
-    box-shadow: 0 0 20px rgba(5, 27, 120, 0.8), 0 0 30px rgba(5, 27, 120, 0.5), 0 0 40px rgba(5, 27, 120, 0.3);
+    box-shadow: 0 0 20px rgba(5, 27, 120, 0.8), 0 0 30px rgba(5, 27, 120, 0.5),
+      0 0 40px rgba(5, 27, 120, 0.3);
   }
 }
 
@@ -228,4 +230,58 @@ html {
 .fade-in-slide {
   animation: fadeInSlide 0.2s ease-out;
   will-change: opacity, transform;
+}
+
+@keyframes dashboardSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dashboard-item {
+  animation: dashboardSlideUp 0.4s ease-out;
+  animation-fill-mode: backwards;
+  will-change: opacity, transform;
+}
+
+.dashboard-item-delayed {
+  animation: dashboardSlideUp 0.4s ease-out;
+  animation-fill-mode: backwards;
+  will-change: opacity, transform;
+}
+
+.dashboard-item-delayed:nth-child(1) {
+  animation-delay: 0.05s;
+}
+.dashboard-item-delayed:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.dashboard-item-delayed:nth-child(3) {
+  animation-delay: 0.15s;
+}
+.dashboard-item-delayed:nth-child(4) {
+  animation-delay: 0.2s;
+}
+.dashboard-item-delayed:nth-child(5) {
+  animation-delay: 0.25s;
+}
+.dashboard-item-delayed:nth-child(6) {
+  animation-delay: 0.3s;
+}
+.dashboard-item-delayed:nth-child(7) {
+  animation-delay: 0.35s;
+}
+.dashboard-item-delayed:nth-child(8) {
+  animation-delay: 0.4s;
+}
+.dashboard-item-delayed:nth-child(9) {
+  animation-delay: 0.45s;
+}
+.dashboard-item-delayed:nth-child(10) {
+  animation-delay: 0.5s;
 }
