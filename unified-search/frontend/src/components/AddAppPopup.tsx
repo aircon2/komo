@@ -1,0 +1,88 @@
+import svgPaths from "../imports/svg-mtcj8eugv";
+import imgSlack from "figma:asset/c83971c90bff75db17f07aa1d9f05cd71d6ca2b0.png";
+import imgNotion from "figma:asset/54bfd4a3d4588e15cd90e5ddc6efe79fa7b9c9f2.png";
+
+interface AddAppPopupProps {
+  onClose: () => void;
+  onAddApp: (app: "Slack" | "Notion") => void;
+  addedApps: Record<string, boolean>;
+}
+
+export function AddAppPopup({ onClose, onAddApp, addedApps }: AddAppPopupProps) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative bg-white rounded-[30px] w-[520px] px-[60px] py-[50px] shadow-2xl animate-in zoom-in-95 duration-200">
+        {/* Blue border */}
+        <div aria-hidden="true" className="absolute border-[3px] border-[#051b78] border-solid inset-0 pointer-events-none rounded-[30px]" />
+        
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute top-[20px] right-[25px] text-[#8e8e93] hover:text-[#051b78] transition-colors"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
+
+        {/* Title */}
+        <h2 className="font-['Instrument_Serif:Regular',sans-serif] text-[40px] text-black mb-[35px]">
+          choose your app:
+        </h2>
+
+        {/* App options */}
+        <div className="flex gap-[16px]">
+          {/* Slack button */}
+          <button
+            onClick={() => {
+              if (!addedApps.Slack) {
+                onAddApp("Slack");
+              }
+            }}
+            disabled={addedApps.Slack}
+            className={`relative flex items-center gap-[10px] px-[18px] py-[10px] rounded-[10px] border-2 transition-all ${
+              addedApps.Slack
+                ? "border-[#34C759] bg-[#34C759]/10 cursor-not-allowed"
+                : "border-[#8e8e93] hover:border-[#051b78] cursor-pointer"
+            }`}
+          >
+            <img src={imgSlack} alt="Slack" className="size-[24px] rounded-[4px]" />
+            <span className="font-['Hanken_Grotesk:Regular',sans-serif] text-[18px] text-black">
+              Slack
+            </span>
+            {addedApps.Slack && (
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="ml-1">
+                <path d="M16.6666 5L7.49998 14.1667L3.33331 10" stroke="#34C759" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            )}
+          </button>
+
+          {/* Notion button */}
+          <button
+            onClick={() => {
+              if (!addedApps.Notion) {
+                onAddApp("Notion");
+              }
+            }}
+            disabled={addedApps.Notion}
+            className={`relative flex items-center gap-[10px] px-[18px] py-[10px] rounded-[10px] border-2 transition-all ${
+              addedApps.Notion
+                ? "border-[#34C759] bg-[#34C759]/10 cursor-not-allowed"
+                : "border-[#8e8e93] hover:border-[#051b78] cursor-pointer"
+            }`}
+          >
+            <img src={imgNotion} alt="Notion" className="size-[24px] rounded-[4px]" />
+            <span className="font-['Hanken_Grotesk:Regular',sans-serif] text-[18px] text-black">
+              Notion
+            </span>
+            {addedApps.Notion && (
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="ml-1">
+                <path d="M16.6666 5L7.49998 14.1667L3.33331 10" stroke="#34C759" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
