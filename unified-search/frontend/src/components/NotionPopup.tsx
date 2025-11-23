@@ -1,10 +1,16 @@
-import { X, Heart } from "lucide-react";
+import { X } from "lucide-react";
+import { highlightText } from "../utils/textSnippet";
 
 interface NotionPopupProps {
+  title: string;
+  content: string;
+  searchQuery: string;
   onClose: () => void;
 }
 
-export function NotionPopup({ onClose }: NotionPopupProps) {
+export function NotionPopup({ title, content, searchQuery, onClose }: NotionPopupProps) {
+  // Highlight search keywords in the content
+  const highlightedContent = highlightText(content, searchQuery);
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={onClose}>
       {/* Overlay */}
@@ -17,15 +23,11 @@ export function NotionPopup({ onClose }: NotionPopupProps) {
       >
         <div aria-hidden="true" className="absolute border-4 border-[#051b78] border-solid inset-0 pointer-events-none rounded-[20px]" />
         
-        {/* Header with directory path */}
-        <div className="absolute left-[50px] top-[39px] content-stretch flex gap-[5px] items-end">
-          <Heart className="size-[18px] fill-[#FF9B9B] text-[#FF9B9B]" />
-          <div className="flex flex-col font-['Lato:Regular',sans-serif] justify-center leading-[0] relative shrink-0 text-[15px] text-black text-center text-nowrap">
-            <p className="leading-[normal] whitespace-pre">nwHacks 2026 </p>
-          </div>
-          <p className="font-['Lato:Regular',sans-serif] leading-[normal] not-italic relative shrink-0 text-[16px] text-[rgba(0,0,0,0.6)] text-nowrap whitespace-pre">/</p>
-          <Heart className="size-[18px] fill-[#FF9B9B] text-[#FF9B9B]" />
-          <p className="font-['Lato:Regular',sans-serif] leading-[normal] not-italic relative shrink-0 text-[15px] text-black text-nowrap whitespace-pre">signage</p>
+        {/* Header with page title */}
+        <div className="absolute left-[50px] top-[39px] right-[80px]">
+          <h2 className="font-['Lato:Regular',sans-serif] text-[18px] text-black leading-[normal] truncate">
+            {title}
+          </h2>
         </div>
 
         {/* Close button */}
@@ -45,11 +47,12 @@ export function NotionPopup({ onClose }: NotionPopupProps) {
           </div>
         </div>
 
-        {/* Content area - empty for now, could be filled with Notion page content */}
-        <div className="absolute left-[50px] right-[50px] top-[110px] bottom-[50px]">
-          <div className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal text-[14px] text-[#8e8e93] text-center">
-            <p>Notion page content would appear here...</p>
-          </div>
+        {/* Content area - scrollable */}
+        <div className="absolute left-[50px] right-[50px] top-[110px] bottom-[50px] overflow-y-auto">
+          <div
+            className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal text-[14px] text-black leading-[1.6] whitespace-pre-wrap"
+            dangerouslySetInnerHTML={{ __html: highlightedContent || "No content available." }}
+          />
         </div>
       </div>
     </div>

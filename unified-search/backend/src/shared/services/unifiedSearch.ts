@@ -24,7 +24,7 @@ export async function unifiedSearch(
   try {
     [slackRaw, localRaw] = await Promise.all([
       (searchSlack(query) as unknown as Promise<RawResult[]>),
-      Promise.resolve(searchLocal(query)),
+      Promise.resolve(searchLocal(query)), // ✅ This uses cached database, NO Notion API calls
     ]);
   } catch (err) {
     console.error("Unified search failed:", err);

@@ -6,9 +6,18 @@ interface AddAppPopupProps {
   onClose: () => void;
   onAddApp: (app: "Slack" | "Notion") => void;
   addedApps: Record<string, boolean>;
+  onToggleApp?: (app: "Slack" | "Notion") => void; // Optional toggle handler
 }
 
-export function AddAppPopup({ onClose, onAddApp, addedApps }: AddAppPopupProps) {
+export function AddAppPopup({ onClose, onAddApp, addedApps, onToggleApp }: AddAppPopupProps) {
+  // Use toggle if provided, otherwise use add
+  const handleAppClick = (app: "Slack" | "Notion") => {
+    if (onToggleApp) {
+      onToggleApp(app);
+    } else if (!addedApps[app]) {
+      onAddApp(app);
+    }
+  };
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="relative bg-white rounded-[30px] w-[520px] px-[60px] py-[50px] shadow-2xl animate-in zoom-in-95 duration-200">
@@ -32,14 +41,9 @@ export function AddAppPopup({ onClose, onAddApp, addedApps }: AddAppPopupProps) 
         <div className="flex gap-[16px]">
           {/* Slack button */}
           <button
-            onClick={() => {
-              if (!addedApps.Slack) {
-                onAddApp("Slack");
-              }
-            }}
-            disabled={addedApps.Slack}
+            onClick={() => handleAppClick("Slack")}
             className={`relative flex items-center gap-[10px] px-[18px] py-[10px] rounded-[10px] border-2 transition-all ${addedApps.Slack
-              ? "border-[#34C759] bg-[#34C759]/10 cursor-not-allowed"
+              ? "border-[#34C759] bg-[#34C759]/10 cursor-pointer hover:bg-[#34C759]/20"
               : "border-[#8e8e93] hover:border-[#051b78] cursor-pointer"
               }`}
           >
@@ -55,14 +59,9 @@ export function AddAppPopup({ onClose, onAddApp, addedApps }: AddAppPopupProps) 
 
           {/* Notion button */}
           <button
-            onClick={() => {
-              if (!addedApps.Notion) {
-                onAddApp("Notion");
-              }
-            }}
-            disabled={addedApps.Notion}
+            onClick={() => handleAppClick("Notion")}
             className={`relative flex items-center gap-[10px] px-[18px] py-[10px] rounded-[10px] border-2 transition-all ${addedApps.Notion
-              ? "border-[#34C759] bg-[#34C759]/10 cursor-not-allowed"
+              ? "border-[#34C759] bg-[#34C759]/10 cursor-pointer hover:bg-[#34C759]/20"
               : "border-[#8e8e93] hover:border-[#051b78] cursor-pointer"
               }`}
           >

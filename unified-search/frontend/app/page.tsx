@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import svgPaths from "../src/imports/svg-mtjcj8eugv";
 import logo2 from "../src/assets/logo2.png";
 import returnKeySvgPaths from "../src/imports/svg-fl3ymrnpwd";
@@ -10,6 +10,18 @@ import { AppChip } from "../src/components/AppChip";
 import { Dashboard } from "../src/components/Dashboard";
 import { InlineSearchResults } from "../src/components/InlineSearchResults";
 import { AddAppPopup } from "../src/components/AddAppPopup";
+import { extractTextSnippet } from "../src/utils/textSnippet";
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
+interface BackendSearchResult {
+  source: string;
+  title: string;
+  text: string;
+  author?: string;
+  date?: string;
+  link?: string;
+}
 
 function AddIcon() {
   return (
@@ -36,49 +48,114 @@ export default function Home() {
   const [selectedResultIndex, setSelectedResultIndex] = useState(0);
   const [showAddAppPopup, setShowAddAppPopup] = useState(false);
   const [hasAddedApps, setHasAddedApps] = useState(false);
+  const [searchResults, setSearchResults] = useState<Array<{ id: string; type: "slack" | "notion"; message: string; date?: string }>>([]);
+  const [loading, setLoading] = useState(false);
 
-  // Mock search results
-  const mockSearchResults = [
-    {
-      id: "1",
-      type: "slack" as const,
-      message: "@tracyla I think the cmd-f signage looks cool!"
-    },
-    {
-      id: "2",
-      type: "slack" as const,
-      message: "@kashish I need the nwHacks signage by Monday evening since I need to get..."
-    },
-    {
-      id: "3",
-      type: "notion" as const,
-      message: "@karenag uploaded nwHacks signage on Wed 20/12."
-    },
-    {
-      id: "4",
-      type: "notion" as const,
-      message: "@karenag edited nwHacks signage on Wed 20/12."
-    },
-    {
-      id: "5",
-      type: "notion" as const,
-      message: "@daksh created cmd-f signage on Mon 18/12."
-    },
-    {
-      id: "6",
-      type: "notion" as const,
-      message: "@daksh created nwHacks signage on Mon 18/12."
+  // Fetch search results from backend as user types
+  useEffect(() => {
+    // Don't search if no query or no apps active
+    if (!searchQuery.trim() || !Object.values(activeApps).some(active => active)) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
     }
-  ];
 
-  const filteredResults = mockSearchResults.filter(result => {
-    // Only show results for active apps
-    if (result.type === "slack" && !activeApps.Slack) return false;
-    if (result.type === "notion" && !activeApps.Notion) return false;
-    // Only show results that contain the exact search query (case-insensitive substring match)
-    if (!searchQuery.trim()) return false;
-    return result.message.toLowerCase().includes(searchQuery.toLowerCase());
-  });
+    // AbortController to cancel previous requests
+    const abortController = new AbortController();
+
+    const fetchResults = async () => {
+      setLoading(true);
+      try {
+        let response: Response;
+        try {
+          response = await fetch(`${API_BASE_URL}/api/search?q=${encodeURIComponent(searchQuery)}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            signal: abortController.signal,
+          });
+        } catch (fetchError: any) {
+          // Handle network errors (backend not running, CORS, etc.)
+          if (fetchError.name === 'AbortError') {
+            return; // Request was cancelled, ignore
+          }
+          console.error("Network error:", fetchError);
+          throw new Error(`Cannot connect to backend at ${API_BASE_URL}. Make sure the backend server is running on port 4000.`);
+        }
+
+        if (!response.ok) {
+          throw new Error(`Search failed: ${response.statusText}`);
+        }
+
+        const backendResults: BackendSearchResult[] = await response.json();
+        
+        // Transform to frontend format
+        const transformed = backendResults
+          .filter((result) => {
+            // Filter by active apps
+            if (result.source === "slack" && !activeApps.Slack) return false;
+            if (result.source === "notion" && !activeApps.Notion) return false;
+            return true;
+          })
+          .map((result, index) => {
+            // Extract snippet around search query (not full text)
+            const highlightedText = extractTextSnippet(result.text || "", searchQuery, 100);
+
+            // Format date
+            let dateStr = "";
+            if (result.date) {
+              try {
+                const date = new Date(result.date);
+                if (!isNaN(date.getTime())) {
+                  dateStr = `${date.getDate()}/${date.getMonth() + 1}`;
+                }
+              } catch (e) {
+                // Invalid date
+              }
+            }
+
+            // Generate unique ID
+            const linkPart = (result.link || result.title || 'unknown').substring(0, 50);
+            const textHash = (result.text || "").substring(0, 20).replace(/[^a-zA-Z0-9]/g, '');
+            const uniqueId = `${result.source}-${linkPart}-${textHash}-${result.date || index}-${index}`;
+
+            return {
+              id: uniqueId,
+              type: result.source as "slack" | "notion",
+              message: highlightedText || "No content",
+              date: dateStr,
+            };
+          });
+
+        setSearchResults(transformed);
+        setShowSearchResults(transformed.length > 0);
+        setSelectedResultIndex(0);
+      } catch (err: any) {
+        if (err.name === 'AbortError') {
+          return; // Request was cancelled, ignore
+        }
+        console.error("Error fetching search results:", err);
+        // Only show error if it's not a connection error (user will see empty results)
+        if (err.message && err.message.includes('Cannot connect to backend')) {
+          console.warn("Backend server appears to be offline. Please start the backend server.");
+        }
+        setSearchResults([]);
+        setShowSearchResults(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Search immediately on every keystroke
+    fetchResults();
+
+    return () => {
+      abortController.abort();
+    };
+  }, [searchQuery, activeApps]);
+
+  const filteredResults = searchResults;
 
   const handleToggleApp = (app: string) => {
     setActiveApps(prev => ({
@@ -106,17 +183,9 @@ export default function Home() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchQuery(value);
-
-    // Show results immediately if there's text and at least one app is active
-    if (value.trim() && Object.values(activeApps).some(active => active)) {
-      setShowSearchResults(true);
-      setShowDropdown(false); // Never show dropdown when apps are active
-      setSelectedResultIndex(0);
-    } else {
-      setShowSearchResults(false);
-      // Only show dropdown if NO apps are active
-      setShowDropdown(value.length > 0 && !Object.values(activeApps).some(active => active));
-    }
+    // The useEffect will handle fetching and showing results automatically
+    // Only show dropdown if NO apps are active
+    setShowDropdown(value.length > 0 && !Object.values(activeApps).some(active => active));
   };
 
   const handleBackToSearch = () => {
@@ -318,6 +387,10 @@ export default function Home() {
           onAddApp={(app) => {
             setActiveApps(prev => ({ ...prev, [app]: true }));
             setHasAddedApps(true);
+          }}
+          onToggleApp={(app) => {
+            setActiveApps(prev => ({ ...prev, [app]: !prev[app] }));
+            setHasAddedApps(Object.values({ ...activeApps, [app]: !activeApps[app] }).some(active => active));
           }}
           addedApps={activeApps}
         />

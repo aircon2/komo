@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SearchResultItem } from "./SearchResultItem";
 import { NotionPopup } from "./NotionPopup";
 import { CornerDownLeft, ArrowLeft } from "lucide-react";
 import sadcloud from "../assets/sadcloud.png";
+import { extractTextSnippet, highlightText } from "../utils/textSnippet";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 interface DashboardProps {
   searchQuery: string;
@@ -17,47 +19,35 @@ interface SearchResult {
   type: "slack" | "notion";
   message: string;
   date: string;
+  fullText?: string; // Full text for Notion pages
+  metadata?: {
+    author?: string;
+    channel?: string;
+    title?: string; // Page title for Notion
+  };
 }
 
-// Mock data
-const mockSearchResults: SearchResult[] = [
-  {
-    id: "1",
-    type: "slack",
-    message: `@tracyla I think the cmd-f <span class="font-['Hanken_Grotesk:Bold',sans-serif] font-bold">signage</span> looks cool!`,
-    date: "10/01"
-  },
-  {
-    id: "2",
-    type: "slack",
-    message: `@kashish I need the nwHacks <span class="font-['Hanken_Grotesk:Bold',sans-serif] font-bold">signage</span> by Monday...`,
-    date: "22/12"
-  },
-  {
-    id: "3",
-    type: "notion",
-    message: `@karenag uploaded nwHacks <span class="font-['Hanken_Grotesk:Bold',sans-serif] font-bold">signage</span>.`,
-    date: "20/12"
-  },
-  {
-    id: "4",
-    type: "notion",
-    message: `@karenag edited nwHacks <span class="font-['Hanken_Grotesk:Bold',sans-serif] font-bold">signage</span>.`,
-    date: "20/12"
-  },
-  {
-    id: "5",
-    type: "notion",
-    message: `@daksh created cmd-f <span class="font-['Hanken_Grotesk:Bold',sans-serif] font-bold">signage</span>.`,
-    date: "18/12"
-  },
-  {
-    id: "6",
-    type: "notion",
-    message: `@daksh created nwHacks <span class="font-['Hanken_Grotesk:Bold',sans-serif] font-bold">signage</span>.`,
-    date: "18/12"
-  }
-];
+interface BackendSearchResult {
+  source: string;
+  title: string;
+  text: string;
+  author?: string;
+  date?: string;
+  link?: string;
+}
+
+interface SummaryItem {
+  topic: string;
+  summary: string;
+  references?: string[];
+}
+
+interface SummaryResponse {
+  query: string;
+  summary: {
+    summary: SummaryItem[];
+  } | SummaryItem[] | string;
+}
 
 function ReturnKeyIcon() {
   return (
@@ -72,27 +62,191 @@ function ReturnKeyIcon() {
 export function Dashboard({ searchQuery, activeApps, onBack, onSearchChange }: DashboardProps) {
   const [selectedResult, setSelectedResult] = useState<string | null>(null);
   const [showNotionPopup, setShowNotionPopup] = useState(false);
+  const [selectedNotionData, setSelectedNotionData] = useState<{ title: string; text: string } | null>(null);
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [summary, setSummary] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const filteredResults = mockSearchResults.filter(result => {
-    if (result.type === "slack" && !activeApps.Slack) return false;
-    if (result.type === "notion" && !activeApps.Notion) return false;
-
-    // Filter by search query
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      const messageText = result.message.replace(/<[^>]*>/g, '').toLowerCase(); // Remove HTML tags
-      return messageText.includes(query);
+  // Fetch search results and summary from backend - searches on every keystroke
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      setSummary("");
+      setLoading(false);
+      return;
     }
 
-    return true;
-  });
+    // AbortController to cancel previous requests when query changes
+    const abortController = new AbortController();
+
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        console.log("🔍 Fetching from:", `${API_BASE_URL}/api/search?q=${encodeURIComponent(searchQuery)}`);
+        // Fetch search results with abort signal
+        const searchResponse = await fetch(`${API_BASE_URL}/api/search?q=${encodeURIComponent(searchQuery)}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          signal: abortController.signal,
+        });
+        console.log("📡 Search response status:", searchResponse.status);
+        if (!searchResponse.ok) {
+          const errorText = await searchResponse.text();
+          console.error("❌ Search failed:", errorText);
+          throw new Error(`Search failed: ${searchResponse.statusText}`);
+        }
+        const backendResults: BackendSearchResult[] = await searchResponse.json();
+        console.log("✅ Search results received:", backendResults.length, "items");
+
+        // Transform backend results to frontend format
+        const transformedResults: SearchResult[] = backendResults
+          .filter((result) => {
+            // Filter by active apps
+            if (result.source === "slack" && !activeApps.Slack) return false;
+            if (result.source === "notion" && !activeApps.Notion) return false;
+            return true;
+          })
+          .map((result, index) => {
+            // Extract snippet around search query (not full text)
+            const text = result.text || "";
+            const highlightedText = extractTextSnippet(text, searchQuery, 100);
+
+            // Format date
+            let dateStr = "";
+            if (result.date) {
+              try {
+                const date = new Date(result.date);
+                if (!isNaN(date.getTime())) {
+                  dateStr = `${date.getDate()}/${date.getMonth() + 1}`;
+                }
+              } catch (e) {
+                // Invalid date, leave empty
+              }
+            }
+
+            // Generate unique ID: combine source, link, date, text hash, and index to ensure uniqueness
+            const linkPart = (result.link || result.title || 'unknown').substring(0, 50);
+            const textHash = text.substring(0, 20).replace(/[^a-zA-Z0-9]/g, '');
+            const uniqueId = `${result.source}-${linkPart}-${textHash}-${result.date || index}-${index}`;
+
+            return {
+              id: uniqueId,
+              type: result.source as "slack" | "notion",
+              message: highlightedText || "No content",
+              date: dateStr,
+              fullText: result.source === "notion" ? result.text : undefined, // Store full text for Notion
+              metadata: {
+                author: result.author,
+                channel: result.source === "slack" ? result.title : undefined,
+                title: result.source === "notion" ? result.title : undefined, // Page title for Notion
+              },
+            };
+          });
+
+        setSearchResults(transformedResults);
+
+        // Fetch summary with abort signal - pass active apps
+        const activeSources = [];
+        if (activeApps.Slack) activeSources.push("slack");
+        if (activeApps.Notion) activeSources.push("notion");
+        const sourcesParam = activeSources.join(",") || "slack,notion"; // Default to both if none selected
+        
+        console.log("📝 Fetching summary from:", `${API_BASE_URL}/api/summarize?q=${encodeURIComponent(searchQuery)}&sources=${sourcesParam}`);
+        const summaryResponse = await fetch(`${API_BASE_URL}/api/summarize?q=${encodeURIComponent(searchQuery)}&sources=${sourcesParam}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          signal: abortController.signal,
+        });
+        console.log("📡 Summary response status:", summaryResponse.status);
+        if (!summaryResponse.ok) {
+          const errorText = await summaryResponse.text();
+          console.error("❌ Summary failed:", errorText);
+          throw new Error(`Summary failed: ${summaryResponse.statusText}`);
+        }
+        const summaryData: SummaryResponse = await summaryResponse.json();
+        console.log("✅ Summary received:", summaryData);
+        
+        // Handle different summary response formats
+        let summaryText = "";
+        try {
+          if (summaryData.summary) {
+            let summaryArray: SummaryItem[] = [];
+            
+            // The API returns: { query: "...", summary: { summary: [...] } }
+            if (typeof summaryData.summary === "object" && !Array.isArray(summaryData.summary)) {
+              // Nested object format: { summary: { summary: [...] } }
+              const nested = summaryData.summary as any;
+              if (Array.isArray(nested.summary)) {
+                summaryArray = nested.summary;
+              } else if (Array.isArray(nested)) {
+                summaryArray = nested;
+              }
+            } else if (Array.isArray(summaryData.summary)) {
+              // Direct array format
+              summaryArray = summaryData.summary;
+            } else if (typeof summaryData.summary === "string") {
+              // Fallback: if it's already a string
+              summaryText = summaryData.summary;
+            }
+            
+            if (Array.isArray(summaryArray) && summaryArray.length > 0) {
+              // Format the summary array into readable HTML
+              summaryText = summaryArray.map((item: SummaryItem) => {
+                const topic = (item.topic || "Topic").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                const summary = (item.summary || "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                return `<p class="font-['Hanken_Grotesk:Bold',sans-serif] font-bold mb-2">${topic}</p><p class="mb-3">${summary}</p>`;
+              }).join("");
+            }
+          }
+        } catch (summaryError) {
+          console.error("Error parsing summary:", summaryError);
+          summaryText = "Summary format error. Please try again.";
+        }
+        
+        setSummary(summaryText);
+      } catch (err: any) {
+        // Don't show error if request was aborted (user typed new character)
+        if (err.name === 'AbortError') {
+          console.log("Request aborted (new search started)");
+          return;
+        }
+        console.error("Error fetching data:", err);
+        setError(err.message || "Failed to fetch data");
+        setSearchResults([]);
+        setSummary("");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Search immediately on every keystroke (no debounce for real-time search)
+    fetchData();
+
+    // Cleanup: abort any pending requests when query changes
+    return () => {
+      abortController.abort();
+    };
+  }, [searchQuery, activeApps]);
+
+  const filteredResults = searchResults;
 
   // Auto-select first result to always show summary
   const effectiveSelectedResult = selectedResult || (filteredResults.length > 0 ? filteredResults[0].id : null);
 
   const handleResultClick = (result: SearchResult) => {
     setSelectedResult(result.id);
-    if (result.type === "notion") {
+    if (result.type === "notion" && result.metadata?.title && result.fullText) {
+      setSelectedNotionData({
+        title: result.metadata.title,
+        text: result.fullText,
+      });
       setShowNotionPopup(true);
     }
   };
@@ -182,18 +336,32 @@ export function Dashboard({ searchQuery, activeApps, onBack, onSearchChange }: D
 
           {/* Search results list - no horizontal scroll, with proper spacing */}
           <div className="absolute left-[38px] top-[90px] right-[30px] bottom-[20px] overflow-y-auto overflow-x-hidden">
-            <div className="flex flex-col gap-[10px]">
-              {filteredResults.map(result => (
-                <SearchResultItem
-                  key={result.id}
-                  type={result.type}
-                  message={result.message}
-                  date={result.date}
-                  isSelected={effectiveSelectedResult === result.id}
-                  onClick={() => handleResultClick(result)}
-                />
-              ))}
-            </div>
+            {loading ? (
+              <div className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal text-[13px] text-[#8e8e93]">
+                Loading results...
+              </div>
+            ) : error ? (
+              <div className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal text-[13px] text-red-500">
+                Error: {error}
+              </div>
+            ) : filteredResults.length === 0 ? (
+              <div className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal text-[13px] text-[#8e8e93]">
+                No results found. Try a different search query.
+              </div>
+            ) : (
+              <div className="flex flex-col gap-[10px]">
+                {filteredResults.map(result => (
+                  <SearchResultItem
+                    key={result.id}
+                    type={result.type}
+                    message={result.message}
+                    date={result.date}
+                    isSelected={effectiveSelectedResult === result.id}
+                    onClick={() => handleResultClick(result)}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -213,16 +381,24 @@ export function Dashboard({ searchQuery, activeApps, onBack, onSearchChange }: D
 
           {/* Summary content */}
           <div className="absolute left-[30px] top-[90px] right-[30px] max-h-[38%] overflow-y-auto">
-            <div className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal text-[13px] text-black leading-[1.5]">
-              <p className="font-['Hanken_Grotesk:Bold',sans-serif] font-bold mb-2">nwHacks Signage</p>
-              <p className="mb-3">
-                Lots of people were talking about the nwHacks signage! On Slack, @tracyl and @kashish chatted about it, shared feedback, and coordinated when it needed to be done. In Notion, @daksh first created the signage on Dec 18, and @karenag later jumped in on Dec 20 to upload and polish the updated version. Overall, it was definitely a team effort with everyone touching a different piece of the puzzle.
-              </p>
-              <p className="font-['Hanken_Grotesk:Bold',sans-serif] font-bold mb-2">cmd-f Signage</p>
-              <p>
-                There were also a few mentions of the cmd-f signage popping up. @daksh created it on Dec 18, and @tracyl commented on it in Slack (she thought it looked pretty cool). While it wasn&apos;t the main focus of this search, it shows that cmd-f and nwHacks signage work were happening around the same time and in similar threads.
-              </p>
-            </div>
+            {loading ? (
+              <div className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal text-[13px] text-[#8e8e93]">
+                Loading summary...
+              </div>
+            ) : error ? (
+              <div className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal text-[13px] text-red-500">
+                Error: {error}
+              </div>
+            ) : summary ? (
+              <div
+                className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal text-[13px] text-black leading-[1.5]"
+                dangerouslySetInnerHTML={{ __html: summary }}
+              />
+            ) : (
+              <div className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal text-[13px] text-[#8e8e93]">
+                No summary available. Try searching for something.
+              </div>
+            )}
           </div>
 
           {/* Horizontal divider */}
@@ -247,22 +423,40 @@ export function Dashboard({ searchQuery, activeApps, onBack, onSearchChange }: D
           </div>
 
           {/* Information content */}
-          <div className="absolute left-[30px] top-[calc(58%+85px)] right-[30px] bottom-[20px]">{selectedResult ? (
-            <div className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal text-[13px] text-[#8e8e93] leading-[1.8] space-y-1">
-              <div className="flex justify-between">
-                <span>channel name</span>
-                <span className="text-black"># team-cmd-f</span>
-              </div>
-              <div className="flex justify-between">
-                <span>from</span>
-                <span className="text-black">Tracy La</span>
-              </div>
-              <div className="flex justify-between">
-                <span>posted</span>
-                <span className="text-black">Jan 1, 2026</span>
-              </div>
-            </div>
-          ) : (
+          <div className="absolute left-[30px] top-[calc(58%+85px)] right-[30px] bottom-[20px]">
+            {effectiveSelectedResult ? (() => {
+              const result = filteredResults.find(r => r.id === effectiveSelectedResult);
+              if (!result) return null;
+              
+              return (
+                <div className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal text-[13px] text-[#8e8e93] leading-[1.8] space-y-1">
+                  {result.metadata?.channel && (
+                    <div className="flex justify-between">
+                      <span>channel name</span>
+                      <span className="text-black">#{result.metadata.channel}</span>
+                    </div>
+                  )}
+                  {result.metadata?.title && (
+                    <div className="flex justify-between">
+                      <span>page title</span>
+                      <span className="text-black">{result.metadata.title}</span>
+                    </div>
+                  )}
+                  {result.metadata?.author && (
+                    <div className="flex justify-between">
+                      <span>from</span>
+                      <span className="text-black">{result.metadata.author}</span>
+                    </div>
+                  )}
+                  {result.date && (
+                    <div className="flex justify-between">
+                      <span>posted</span>
+                      <span className="text-black">{result.date}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })() : (
             <div className="flex flex-col items-center justify-center h-full max-h-[180px]">
               <p className="font-['Hanken_Grotesk:Regular',sans-serif] text-[15px] text-[#8e8e93] mb-3">
                 this space is all clear!
@@ -278,8 +472,16 @@ export function Dashboard({ searchQuery, activeApps, onBack, onSearchChange }: D
       </div>
 
       {/* Notion Popup */}
-      {showNotionPopup && (
-        <NotionPopup onClose={() => setShowNotionPopup(false)} />
+      {showNotionPopup && selectedNotionData && (
+        <NotionPopup
+          title={selectedNotionData.title}
+          content={selectedNotionData.text}
+          searchQuery={searchQuery}
+          onClose={() => {
+            setShowNotionPopup(false);
+            setSelectedNotionData(null);
+          }}
+        />
       )}
     </div>
   );

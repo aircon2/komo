@@ -23,7 +23,7 @@ export function SearchResultItem({ type, message, date, isSelected, onClick }: S
           <img src={iconImg.src} alt={type} className="size-[20px] object-contain" />
         </div>
         <div className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal text-[16px] text-black text-left leading-[normal] flex-1 min-w-0 overflow-hidden">
-          <p className="leading-[normal] truncate" dangerouslySetInnerHTML={{ __html: message }} />
+          <p className="leading-[normal] line-clamp-2" dangerouslySetInnerHTML={{ __html: message }} />
         </div>
       </div>
       <div className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal text-[#8e8e93] text-[16px] text-nowrap shrink-0">

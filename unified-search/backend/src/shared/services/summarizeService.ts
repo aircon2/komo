@@ -8,19 +8,62 @@ import { config } from "../../config/env.js";
  */
 export async function summarizeSearchResults(query: string, results: any[]) {
   try {
-    console.log("SSR called");
+    console.log("SSR called with", results.length, "results");
+    console.log("Results sources:", results.map(r => r.source));
+    
+    // Filter out empty results and ensure we have valid content
+    const validResults = results.filter(r => r && r.text && r.text.trim().length > 0);
+    
+    if (validResults.length === 0) {
+      return {
+        summary: [
+          {
+            topic: "No Results",
+            summary: "No matching content found for your search query.",
+            references: []
+          }
+        ]
+      };
+    }
+
+    console.log("Valid results for summary:", validResults.length, "items");
+    console.log("Sources breakdown:", validResults.reduce((acc, r) => {
+      acc[r.source] = (acc[r.source] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>));
+
     const genAI = new GoogleGenerativeAI(config.geminiApiKey);
     const model = genAI.getGenerativeModel({
       model: "gemini-2.5-flash-lite", // or "gemini-1.5-pro" for higher reasoning
     });
 
-    // Prepare context for the model
-    const formatted = results
+    // Prepare context for the model - extract snippets around query for better context
+    const formatted = validResults
       .map(
-        (r, i) =>
-          `${i + 1}. [${r.source}] ${r.title || ""}\n` +
-          `   URL: ${r.url || "none"}\n` +
-          `   Content: ${r.text || ""}\n`
+        (r, i) => {
+          // Extract snippet around query if possible, otherwise first 500 chars
+          let contentSnippet = r.text || "";
+          const queryLower = query.toLowerCase();
+          const textLower = contentSnippet.toLowerCase();
+          const matchIndex = textLower.indexOf(queryLower);
+          
+          if (matchIndex !== -1) {
+            // Extract 200 chars around the match
+            const start = Math.max(0, matchIndex - 200);
+            const end = Math.min(contentSnippet.length, matchIndex + query.length + 200);
+            contentSnippet = contentSnippet.substring(start, end);
+            if (start > 0) contentSnippet = "..." + contentSnippet;
+            if (end < (r.text || "").length) contentSnippet = contentSnippet + "...";
+          } else {
+            // No match, just take first 500 chars
+            contentSnippet = contentSnippet.substring(0, 500);
+            if ((r.text || "").length > 500) contentSnippet += "...";
+          }
+          
+          return `${i + 1}. [${r.source}] ${r.title || "Untitled"}\n` +
+            `   URL: ${r.link || r.url || "none"}\n` +
+            `   Content: ${contentSnippet}\n`;
+        }
       )
       .join("\n");
 
@@ -29,7 +72,10 @@ You are an AI that summarizes and categorizes search results.
 
 Given the following content about the query "${query}", group related mentions by topic/context and create short 10–20 word summaries. 
 
-IMPORTANT: The "references" field must contain the actual URL strings from the "URL:" field in each result, NOT the item numbers. Each reference must be a complete URL string. You must always include references in a summary.
+IMPORTANT RULES:
+1. The "references" field must contain the actual URL strings from the "URL:" field in each result, NOT the item numbers. Each reference must be a complete URL string. You must always include references in a summary.
+2. DO NOT mention file types (like MP4, PDF, PNG) unless the content explicitly describes an actual file that exists. If content just mentions file types in examples or documentation, do not include them in summaries.
+3. Only summarize actual content found, not metadata or examples.
 
 Respond strictly in valid JSON format like this:
 
@@ -78,9 +124,9 @@ ${formatted}
     }
 
     // Post-process: Convert number references to actual URLs
-    // Create a map of index -> URL for quick lookup
+    // Create a map of index -> URL for quick lookup (use validResults indices)
     const urlMap = new Map(
-      results.map((r, i) => [String(i + 1), r.url || null])
+      validResults.map((r, i) => [String(i + 1), r.link || r.url || null])
     );
 
     if (parsed.summary && Array.isArray(parsed.summary)) {

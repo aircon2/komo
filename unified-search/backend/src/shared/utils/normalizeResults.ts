@@ -10,6 +10,7 @@ export interface NormalizedRecord {
 /** Normalize heterogeneous JSON from all services */
 export function normalizeResults(rawResults: any[]): NormalizedRecord[] {
   const normalized: NormalizedRecord[] = []
+  const seenIds = new Set<string>(); // Track seen IDs to prevent duplicates
 
   for (const item of rawResults) {
     switch (item.source) {
@@ -17,7 +18,13 @@ export function normalizeResults(rawResults: any[]): NormalizedRecord[] {
         normalized.push(...normalizeSlackItems(item))
         break
       case "notion":
-        normalized.push(normalizeNotionItem(item))
+        // Deduplicate Notion results by URL or ID
+        const notionRecord = normalizeNotionItem(item);
+        const dedupKey = notionRecord.link || item.url || item.id || notionRecord.title;
+        if (!seenIds.has(dedupKey)) {
+          seenIds.add(dedupKey);
+          normalized.push(notionRecord);
+        }
         break
       default:
         normalized.push({
