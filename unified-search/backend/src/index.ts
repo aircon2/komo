@@ -12,10 +12,30 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 // CORS configuration - allow requests from frontend
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://searchkomo.tech',
+  'https://www.searchkomo.tech',
+  'https://komosearch.tech',
+  'https://www.komosearch.tech',
+];
+
+// Add FRONTEND_URL if set
+if (process.env.FRONTEND_URL) {
+  allowedOrigins.push(process.env.FRONTEND_URL);
+}
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL 
-    ? [process.env.FRONTEND_URL, 'http://localhost:3000']
-    : ['http://localhost:3000', 'https://searchkomo.tech', 'https://www.searchkomo.tech'],
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 }));
 app.use(express.json());
