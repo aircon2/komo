@@ -259,6 +259,37 @@ export function Dashboard({ searchQuery, activeApps, onBack, onSearchChange }: D
   // Auto-select first result to always show summary
   const effectiveSelectedResult = selectedResult || (filteredResults.length > 0 ? filteredResults[0].id : null);
 
+  // Global keyboard handler for arrow keys (works even when input is not focused)
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Only handle arrow keys when we have results
+      if (filteredResults.length === 0) return;
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        e.stopPropagation();
+        const currentIndex = filteredResults.findIndex(r => r.id === effectiveSelectedResult);
+        // If no result selected or at the end, go to first result, otherwise go to next
+        const nextIndex = currentIndex === -1 || currentIndex >= filteredResults.length - 1 
+          ? 0 
+          : currentIndex + 1;
+        setSelectedResult(filteredResults[nextIndex].id);
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        e.stopPropagation();
+        const currentIndex = filteredResults.findIndex(r => r.id === effectiveSelectedResult);
+        // If no result selected or at the beginning, go to last result, otherwise go to previous
+        const prevIndex = currentIndex === -1 || currentIndex <= 0 
+          ? filteredResults.length - 1 
+          : currentIndex - 1;
+        setSelectedResult(filteredResults[prevIndex].id);
+      }
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyDown, true); // Use capture phase
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown, true);
+  }, [filteredResults, effectiveSelectedResult]);
+
   const handleResultClick = (result: SearchResult) => {
     setSelectedResult(result.id);
     
@@ -317,6 +348,24 @@ export function Dashboard({ searchQuery, activeApps, onBack, onSearchChange }: D
         // Regular Enter: Re-render/refresh the dashboard with current search
         setSelectedResult(null); // Reset selection to show first result
       }
+    } else if (e.key === "ArrowDown" && filteredResults.length > 0) {
+      e.preventDefault();
+      e.stopPropagation();
+      const currentIndex = filteredResults.findIndex(r => r.id === effectiveSelectedResult);
+      // If no result selected or at the end, go to first result, otherwise go to next
+      const nextIndex = currentIndex === -1 || currentIndex >= filteredResults.length - 1 
+        ? 0 
+        : currentIndex + 1;
+      setSelectedResult(filteredResults[nextIndex].id);
+    } else if (e.key === "ArrowUp" && filteredResults.length > 0) {
+      e.preventDefault();
+      e.stopPropagation();
+      const currentIndex = filteredResults.findIndex(r => r.id === effectiveSelectedResult);
+      // If no result selected or at the beginning, go to last result, otherwise go to previous
+      const prevIndex = currentIndex === -1 || currentIndex <= 0 
+        ? filteredResults.length - 1 
+        : currentIndex - 1;
+      setSelectedResult(filteredResults[prevIndex].id);
     }
   };
 

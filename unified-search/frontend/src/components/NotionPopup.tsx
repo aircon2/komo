@@ -11,48 +11,44 @@ interface NotionPopupProps {
 export function NotionPopup({ title, content, searchQuery, onClose }: NotionPopupProps) {
   // Highlight search keywords in the content
   const highlightedContent = highlightText(content, searchQuery);
+  
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={onClose}>
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-[rgba(183,183,188,0.6)]" />
+      {/* Overlay - subtle backdrop */}
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
       
-      {/* Modal */}
+      {/* Modal - Notion-like design */}
       <div
-        className="relative bg-[#faf9f6] rounded-[20px] shadow-[0_4px_24px_rgba(0,0,0,0.15)] w-[823px] h-[405px]"
+        className="relative bg-white rounded-lg shadow-2xl w-[90vw] max-w-[900px] h-[85vh] max-h-[700px] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
+        style={{ fontFamily: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif' }}
       >
-        <div aria-hidden="true" className="absolute border-4 border-[#051b78] border-solid inset-0 pointer-events-none rounded-[20px]" />
-        
-        {/* Header with page title */}
-        <div className="absolute left-[50px] top-[39px] right-[80px]">
-          <h2 className="font-['Lato:Regular',sans-serif] text-[18px] text-black leading-[normal] truncate">
+        {/* Header - Notion-style */}
+        <div className="flex items-center justify-between px-8 py-4 border-b border-gray-200 bg-white">
+          <h1 className="text-2xl font-semibold text-gray-900 flex-1 min-w-0 truncate pr-4">
             {title}
-          </h2>
+          </h1>
+          <button
+            onClick={onClose}
+            className="flex-shrink-0 p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
+            aria-label="Close"
+          >
+            <X className="size-5" />
+          </button>
         </div>
 
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          className="absolute right-[30px] top-[30px] text-[rgba(0,0,0,0.6)] hover:text-black transition-colors"
-        >
-          <X className="size-6" />
-        </button>
-
-        {/* Horizontal divider */}
-        <div className="absolute left-[41px] right-[41px] top-[88px]">
-          <div className="h-[1.028px] w-full">
-            <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 740 2">
-              <path d="M740 0H0V1.02792H740V0Z" fill="var(--fill-0, black)" fillOpacity="0.1" />
-            </svg>
+        {/* Content area - Notion-style with proper padding and typography */}
+        <div className="flex-1 overflow-y-auto bg-white">
+          <div className="max-w-[720px] mx-auto px-8 py-6">
+            <div
+              className="text-[15px] leading-[1.6] text-gray-800 whitespace-pre-wrap"
+              style={{
+                fontFamily: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
+                color: 'rgb(55, 53, 47)'
+              }}
+              dangerouslySetInnerHTML={{ __html: highlightedContent || "No content available." }}
+            />
           </div>
-        </div>
-
-        {/* Content area - scrollable */}
-        <div className="absolute left-[50px] right-[50px] top-[110px] bottom-[50px] overflow-y-auto">
-          <div
-            className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal text-[14px] text-black leading-[1.6] whitespace-pre-wrap"
-            dangerouslySetInnerHTML={{ __html: highlightedContent || "No content available." }}
-          />
         </div>
       </div>
     </div>

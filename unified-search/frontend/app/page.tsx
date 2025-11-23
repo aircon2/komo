@@ -213,7 +213,7 @@ export default function Home() {
           alt="komo"
           className="w-[125px] h-[100px] object-contain"
         />
-      </div>
+        </div>
 
       {/* ---------- MAIN SEARCH AREA ---------- */}
       <main
@@ -253,7 +253,7 @@ export default function Home() {
 
             {/* Chips + Add App button */}
             {!showSearchResults && (
-              <div className="flex items-center gap-3 pt-4">
+              <div className="flex items-center gap-3 pt-4 relative">
                 {hasAddedApps && (
                   <>
                     {activeApps.Slack && (
@@ -272,17 +272,57 @@ export default function Home() {
                     )}
                   </>
                 )}
-                <button
-                  onClick={() => setShowAddAppPopup(true)}
-                  className="relative flex items-center gap-2 h-[37px] px-4 border border-neutral-300 rounded-md hover:border-[#051B78] transition-colors"
-                >
-                  <div className="size-[24px]">
-                    <AddIcon />
-                  </div>
-                  <span className="text-[20px] text-neutral-600 font-['Hanken_Grotesk:Regular',sans-serif]">
-                    {hasAddedApps ? "add" : "new item"}
-                  </span>
-                </button>
+                <div className="relative">
+                  <button
+                    onClick={() => setShowAddAppPopup(true)}
+                    className={`relative flex items-center gap-2 h-[37px] px-4 border rounded-md hover:border-[#051B78] transition-colors ${
+                      !hasAddedApps ? "border-[#051B78]" : "border-neutral-300"
+                    }`}
+                    style={
+                      !hasAddedApps
+                        ? {
+                            animation: "glow 2s ease-in-out infinite",
+                            boxShadow:
+                              "0 0 10px rgba(5, 27, 120, 0.5), 0 0 20px rgba(5, 27, 120, 0.3)",
+                          }
+                        : {}
+                    }
+                  >
+                    <div className="size-[24px]">
+                      <AddIcon />
+                    </div>
+                    <span className="text-[20px] text-neutral-600 font-['Hanken_Grotesk:Regular',sans-serif]">
+                      {hasAddedApps ? "add" : "new item"}
+                    </span>
+                  </button>
+
+                  {/* Arrow and text pointing to button - only show when no apps added */}
+                  {!hasAddedApps && (
+                    <div className="absolute left-full top-1/2 -translate-y-1/2 flex items-center" style={{ marginLeft: '4px' }}>
+                      {/* Left-pointing arrow */}
+                      <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="text-[#051B78] shrink-0"
+                      >
+                        <path
+                          d="M15 18L9 12L15 6"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      {/* Text */}
+                      <span className="font-['Hanken_Grotesk:Regular',sans-serif] text-[15px] text-[rgba(60,60,67,0.6)] whitespace-nowrap ml-1">
+                        add an app to search
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
