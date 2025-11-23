@@ -91,8 +91,6 @@
   --sidebar-ring: oklch(0.439 0 0);
 }
 
-
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -142,7 +140,18 @@
   body {
     @apply bg-background text-foreground;
     /* Use the instrument font variable (set by next/font/local in layout.tsx) if available */
-    font-family: var(--font-instrument, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans', sans-serif);
+    font-family: var(
+      --font-instrument,
+      system-ui,
+      -apple-system,
+      "Segoe UI",
+      Roboto,
+      "Helvetica Neue",
+      Arial,
+      "Noto Sans",
+      "Liberation Sans",
+      sans-serif
+    );
   }
 }
 
@@ -150,7 +159,7 @@
  * Base typography. This is not applied to elements which have an ancestor with a Tailwind text class.
  */
 @layer base {
-  :where(:not(:has([class*=' text-']), :not(:has([class^='text-'])))) {
+  :where(:not(:has([class*=" text-"]), :not(:has([class^="text-"])))) {
     h1 {
       font-size: var(--text-2xl);
       font-weight: var(--font-weight-medium);
@@ -203,4 +212,20 @@
 
 html {
   font-size: var(--font-size);
+}
+
+@keyframes fadeInSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-slide {
+  animation: fadeInSlide 0.2s ease-out;
+  will-change: opacity, transform;
 }

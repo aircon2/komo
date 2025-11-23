@@ -59,26 +59,33 @@ export function InlineSearchResults({ results, selectedIndex, onSelectIndex, onO
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedIndex, results.length, onSelectIndex, onOpenResult, results, onOpenLink]);
 
-  // Function to highlight matching text
+  // highlight matching text
   const highlightText = (text: string, query: string) => {
     if (!query.trim()) return text;
-
-    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-    return text.replace(regex, '<strong>$1</strong>');
+    const regex = new RegExp(
+      `(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
+      "gi"
+    );
+    return text.replace(regex, "<strong>$1</strong>");
   };
 
   return (
-    <div className="absolute left-[-100px] right-[-100px] top-[120px] animate-in fade-in slide-in-from-top-4 duration-300">
-      <div className="relative bg-white rounded-[20px] mx-auto w-full max-w-[880px] overflow-hidden">
+    <div className="w-full mt-4 fade-in-slide">
+      <div className="relative bg-white rounded-[20px] w-full overflow-hidden shadow-sm">
         {/* Blue border */}
-        <div aria-hidden="true" className="absolute border-[3px] border-[#051b78] border-solid inset-0 pointer-events-none rounded-[20px]" />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 border-[3px] border-[#051b78] border-solid pointer-events-none rounded-[20px]"
+        />
 
         {/* Results list */}
-        <div className="px-[32px] py-[28px] max-h-[500px] overflow-y-auto">
+        <div className="px-[32px] py-[28px] max-h-[400px] overflow-y-auto">
           <div className="flex flex-col gap-[16px]">
             {results.length === 0 ? (
               <div className="w-full flex items-center justify-center py-12">
-                <span className="font-['Hanken_Grotesk:Regular',sans-serif] text-[17px] text-[#3d3d3d]">no results found :(</span>
+                <span className="font-['Hanken_Grotesk:Regular',sans-serif] text-[17px] text-[#3d3d3d]">
+                  no results found :(
+                </span>
               </div>
             ) : (
               results.map((result, index) => {
@@ -104,22 +111,32 @@ export function InlineSearchResults({ results, selectedIndex, onSelectIndex, onO
                     key={result.id}
                     onClick={handleClick}
                     onDoubleClick={onOpenResult}
-                    className={`relative w-full text-left py-[12px] px-[12px] -mx-[12px] rounded-[8px] transition-colors ${isSelected ? 'bg-[rgba(5,27,120,0.15)]' : 'hover:bg-[rgba(5,27,120,0.05)]'
-                      }`}
+                    className={`relative w-full text-left py-[12px] px-[12px] rounded-[8px] transition-colors duration-150 ${
+                      isSelected
+                        ? "bg-[rgba(5,27,120,0.15)]"
+                        : "hover:bg-[rgba(5,27,120,0.05)]"
+                    }`}
                   >
-                    {/* Content */}
                     <div className="relative flex items-center gap-[14px] w-full">
-                      <div className="relative shrink-0 size-[28px] flex items-center justify-center">
-                        <img src={iconImg.src} alt={result.type} className="size-[28px] object-contain" />
-                      </div>
-                      <div className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal text-[15px] text-black leading-[1.4] flex-1">
-                        <p dangerouslySetInnerHTML={{ __html: highlightText(result.message, searchQuery) }} />
+                      <div className="shrink-0 size-[28px] flex items-center justify-center">
+                        <img
+                          src={iconImg.src}
+                          alt={result.type}
+                          className="size-[28px] object-contain"
+                        />
                       </div>
 
-                      {/* Show cmd + enter hint on selected item */}
+                      <div className="font-['Hanken_Grotesk:Regular',sans-serif] text-[15px] text-black leading-[1.4] flex-1">
+                        <p
+                          dangerouslySetInnerHTML={{
+                            __html: highlightText(result.message, searchQuery),
+                          }}
+                        />
+                      </div>
+
                       {isSelected && (
                         <div className="flex gap-[6px] items-center shrink-0">
-                          <p className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal leading-[normal] text-[#3d3d3d] text-[15px] text-nowrap">
+                          <p className="font-['Hanken_Grotesk:Regular',sans-serif] text-[15px] text-[#3d3d3d]">
                             cmd + enter
                           </p>
                           <ReturnKeyIcon />
