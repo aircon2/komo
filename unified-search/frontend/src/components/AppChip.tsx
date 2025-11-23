@@ -1,6 +1,4 @@
-
-import imgSlack from "figma:asset/c83971c90bff75db17f07aa1d9f05cd71d6ca2b0.png";
-import imgNotion from "figma:asset/54bfd4a3d4588e15cd90e5ddc6efe79fa7b9c9f2.png";
+import { MessageSquare, FileText } from "lucide-react";
 
 interface AppChipProps {
   app: string;
@@ -9,7 +7,7 @@ interface AppChipProps {
 }
 
 export function AppChip({ app, isActive, onToggle }: AppChipProps) {
-  const imgSrc = app === "Slack" ? imgSlack : imgNotion;
+  const Icon = app === "Slack" ? MessageSquare : FileText;
 
   return (
     <button onClick={onToggle} className="relative inline-flex items-center h-[37px] px-[16px] group">
@@ -43,7 +41,7 @@ export function AppChip({ app, isActive, onToggle }: AppChipProps) {
         </svg>
       </div>
       <div className="relative flex items-center gap-2 z-10">
-      <img src={imgSrc.src} alt={app} className="size-[30px]" />
+        <Icon className="size-[30px] text-black" />
         <span className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal text-[16px] text-black whitespace-nowrap">
           {app}
         </span>

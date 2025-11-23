@@ -11,7 +11,7 @@ export interface TooltipItem {
   value?: number | string;
   color?: string;
   dataKey?: string | number;
-  payload?: any;
+  payload?: Record<string, unknown>;
 }
 
 export interface ChartTooltipContentProps {

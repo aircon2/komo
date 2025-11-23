@@ -1,9 +1,7 @@
 import { useState } from "react";
-import svgPaths from "../imports/svg-coysm1x50q";
 import { SearchResultItem } from "./SearchResultItem";
-import { EmptyState } from "./EmptyState";
 import { NotionPopup } from "./NotionPopup";
-import imgMascot from "figma:asset/95719912b4b688bc65402091998e22abcef9a383.png";
+import { Cloud, CornerDownLeft, ArrowLeft } from "lucide-react";
 
 interface DashboardProps {
   searchQuery: string;
@@ -61,33 +59,9 @@ const mockSearchResults: SearchResult[] = [
 
 function ReturnKeyIcon() {
   return (
-    <div className="relative size-[24.02px]">
-      <div className="absolute inset-[-5.71%_-11.43%_-17.14%_-11.43%]">
-        <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 30 30">
-          <g id="Group 75">
-            <g filter="url(#filter0_d_return)" id="Rectangle 1">
-              <path d={svgPaths.p2ebec280} shapeRendering="crispEdges" stroke="var(--stroke-0, #8E8E93)" strokeWidth="0.686275" />
-            </g>
-            <g id="keyboard_return">
-              <g id="icon">
-                <path d={svgPaths.p319d7a00} fill="#7F7F7F" fillOpacity="0.5" style={{ mixBlendMode: "luminosity" }} />
-                <path d={svgPaths.p319d7a00} fill="#3D3D3D" style={{ mixBlendMode: "overlay" }} />
-              </g>
-            </g>
-          </g>
-          <defs>
-            <filter colorInterpolationFilters="sRGB" filterUnits="userSpaceOnUse" height="29.5098" id="filter0_d_return" width="29.5098" x="0" y="0">
-              <feFlood floodOpacity="0" result="BackgroundImageFix" />
-              <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
-              <feOffset dy="1.37255" />
-              <feGaussianBlur stdDeviation="1.37255" />
-              <feComposite in2="hardAlpha" operator="out" />
-              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0" />
-              <feBlend in2="BackgroundImageFix" mode="normal" result="effect1_dropShadow_1_1457" />
-              <feBlend in="SourceGraphic" in2="effect1_dropShadow_1_1457" mode="normal" result="shape" />
-            </filter>
-          </defs>
-        </svg>
+    <div className="relative size-[24.02px] flex items-center justify-center">
+      <div className="border border-[#8E8E93] rounded px-1 py-0.5 bg-white shadow-sm">
+        <CornerDownLeft className="size-3 text-[#3D3D3D]" />
       </div>
     </div>
   );
@@ -135,9 +109,7 @@ export function Dashboard({ searchQuery, activeApps, onBack, onSearchChange }: D
         onClick={onBack}
         className="absolute left-[60px] top-[20px] flex items-center gap-2 text-[#3d3d3d] hover:text-[#051b78] transition-colors group"
       >
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="group-hover:translate-x-[-2px] transition-transform">
-          <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
+        <ArrowLeft className="size-5 group-hover:translate-x-[-2px] transition-transform" />
         <span className="font-['Hanken_Grotesk:Regular',sans-serif] text-[15px]">
           back to home
         </span>
@@ -246,7 +218,7 @@ export function Dashboard({ searchQuery, activeApps, onBack, onSearchChange }: D
               </p>
               <p className="font-['Hanken_Grotesk:Bold',sans-serif] font-bold mb-2">cmd-f Signage</p>
               <p>
-                There were also a few mentions of the cmd-f signage popping up. @daksh created it on Dec 18, and @tracyl commented on it in Slack (she thought it looked pretty cool). While it wasn't the main focus of this search, it shows that cmd-f and nwHacks signage work were happening around the same time and in similar threads.
+                There were also a few mentions of the cmd-f signage popping up. @daksh created it on Dec 18, and @tracyl commented on it in Slack (she thought it looked pretty cool). While it wasn&apos;t the main focus of this search, it shows that cmd-f and nwHacks signage work were happening around the same time and in similar threads.
               </p>
             </div>
           </div>
@@ -293,7 +265,7 @@ export function Dashboard({ searchQuery, activeApps, onBack, onSearchChange }: D
                 <p className="font-['Hanken_Grotesk:Regular',sans-serif] text-[15px] text-[#8e8e93] mb-3">
                   This space is all clear!
                 </p>
-                <img src={imgMascot.src} alt="Cloud" className="w-[80px] h-auto mb-3" />
+                <Cloud className="w-[80px] h-[80px] text-[#8e8e93] mb-3" />
                 <p className="font-['Hanken_Grotesk:Regular',sans-serif] text-[15px] text-[#8e8e93]">
                   Try selecting a search result to explore.
                 </p>

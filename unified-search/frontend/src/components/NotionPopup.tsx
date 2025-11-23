@@ -1,4 +1,3 @@
-import svgPaths from "../imports/svg-foc72ei121";
 import { X, Heart } from "lucide-react";
 
 interface NotionPopupProps {

@@ -1,7 +1,5 @@
 import { useEffect } from "react";
-import svgPaths from "../imports/svg-fl3ymrnpwd";
-import imgSlack from "figma:asset/c83971c90bff75db17f07aa1d9f05cd71d6ca2b0.png";
-import imgNotion from "figma:asset/54bfd4a3d4588e15cd90e5ddc6efe79fa7b9c9f2.png";
+import { MessageSquare, FileText, CornerDownLeft } from "lucide-react";
 
 interface SearchResult {
   id: string;
@@ -20,33 +18,9 @@ interface InlineSearchResultsProps {
 
 function ReturnKeyIcon() {
   return (
-    <div className="relative shrink-0 size-[24.02px]">
-      <div className="absolute inset-[-5.71%_-11.43%_-17.14%_-11.43%]">
-        <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 30 30">
-          <g id="Group 75">
-            <g filter="url(#filter0_d_inline_key)" id="Rectangle 1">
-              <path d={svgPaths.p2ebec280} shapeRendering="crispEdges" stroke="var(--stroke-0, #8E8E93)" strokeWidth="0.686275" />
-            </g>
-            <g id="keyboard_return">
-              <g id="icon">
-                <path d={svgPaths.p319d7a00} fill="#7F7F7F" fillOpacity="0.5" style={{ mixBlendMode: "luminosity" }} />
-                <path d={svgPaths.p319d7a00} fill="#3D3D3D" style={{ mixBlendMode: "overlay" }} />
-              </g>
-            </g>
-          </g>
-          <defs>
-            <filter colorInterpolationFilters="sRGB" filterUnits="userSpaceOnUse" height="29.5098" id="filter0_d_inline_key" width="29.5098" x="0" y="0">
-              <feFlood floodOpacity="0" result="BackgroundImageFix" />
-              <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
-              <feOffset dy="1.37255" />
-              <feGaussianBlur stdDeviation="1.37255" />
-              <feComposite in2="hardAlpha" operator="out" />
-              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0" />
-              <feBlend in2="BackgroundImageFix" mode="normal" result="effect1_dropShadow_inline" />
-              <feBlend in="SourceGraphic" in2="effect1_dropShadow_inline" mode="normal" result="shape" />
-            </filter>
-          </defs>
-        </svg>
+    <div className="relative shrink-0 size-[24.02px] flex items-center justify-center">
+      <div className="border border-[#8E8E93] rounded px-1 py-0.5 bg-white shadow-sm">
+        <CornerDownLeft className="size-3 text-[#3D3D3D]" />
       </div>
     </div>
   );
@@ -90,7 +64,7 @@ export function InlineSearchResults({ results, selectedIndex, onSelectIndex, onO
           <div className="flex flex-col gap-[16px]">
             {results.map((result, index) => {
               const isSelected = index === selectedIndex;
-              const imgSrc = result.type === "slack" ? imgSlack : imgNotion;
+              const Icon = result.type === "slack" ? MessageSquare : FileText;
               
               return (
                 <button
@@ -103,8 +77,8 @@ export function InlineSearchResults({ results, selectedIndex, onSelectIndex, onO
                 >
                   {/* Content */}
                   <div className="relative flex items-center gap-[14px] w-full">
-                    <div className="relative shrink-0 size-[28px]">
-                      <img alt="" className="size-full object-cover rounded-[4px]" src={imgSrc} />
+                    <div className="relative shrink-0 size-[28px] flex items-center justify-center">
+                      <Icon className="size-[28px] text-black" />
                     </div>
                     <div className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal text-[15px] text-black leading-[1.4] flex-1">
                       <p dangerouslySetInnerHTML={{ __html: highlightText(result.message, searchQuery) }} />

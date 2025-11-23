@@ -1,6 +1,4 @@
-import svgPaths from "../imports/svg-mtcj8eugv";
-import imgSlack from "figma:asset/c83971c90bff75db17f07aa1d9f05cd71d6ca2b0.png";
-import imgNotion from "figma:asset/54bfd4a3d4588e15cd90e5ddc6efe79fa7b9c9f2.png";
+import { MessageSquare, FileText, X, Check } from "lucide-react";
 
 interface AddAppPopupProps {
   onClose: () => void;
@@ -20,9 +18,7 @@ export function AddAppPopup({ onClose, onAddApp, addedApps }: AddAppPopupProps) 
           onClick={onClose}
           className="absolute top-[20px] right-[25px] text-[#8e8e93] hover:text-[#051b78] transition-colors"
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <path d="M18 6L6 18M6 6l12 12" />
-          </svg>
+          <X className="size-6" />
         </button>
 
         {/* Title */}
@@ -46,18 +42,12 @@ export function AddAppPopup({ onClose, onAddApp, addedApps }: AddAppPopupProps) 
                 : "border-[#8e8e93] hover:border-[#051b78] cursor-pointer"
             }`}
           >
-            <img
-            src={imgSlack.src}
-            alt="Slack"
-            className="size-[24px] rounded-[4px]"
-            />
+            <MessageSquare className="size-[24px] text-[#4A154B]" />
             <span className="font-['Hanken_Grotesk:Regular',sans-serif] text-[18px] text-black">
               Slack
             </span>
             {addedApps.Slack && (
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="ml-1">
-                <path d="M16.6666 5L7.49998 14.1667L3.33331 10" stroke="#34C759" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              <Check className="ml-1 size-5 text-[#34C759]" />
             )}
           </button>
 
@@ -75,18 +65,12 @@ export function AddAppPopup({ onClose, onAddApp, addedApps }: AddAppPopupProps) 
                 : "border-[#8e8e93] hover:border-[#051b78] cursor-pointer"
             }`}
           >
-            <img
-            src={imgNotion.src}
-            alt="Notion"
-            className="size-[24px] rounded-[4px]"
-            />
+            <FileText className="size-[24px] text-black" />
             <span className="font-['Hanken_Grotesk:Regular',sans-serif] text-[18px] text-black">
               Notion
             </span>
             {addedApps.Notion && (
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="ml-1">
-                <path d="M16.6666 5L7.49998 14.1667L3.33331 10" stroke="#34C759" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              <Check className="ml-1 size-5 text-[#34C759]" />
             )}
           </button>
         </div>
