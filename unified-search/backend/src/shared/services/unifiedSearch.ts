@@ -1,5 +1,6 @@
 import { searchSlack } from "../../modules/slack/services/slackSearch.js";
 import { searchLocal } from "../../local/indexCache.js";
+import { getAll } from "../../local/indexCache.js";
 import { normalizeResults, NormalizedRecord } from "../utils/normalizeResults.js";
 
 // Generic type for a result from *any* service
@@ -21,11 +22,13 @@ export async function unifiedSearch(
   let localRaw: RawResult[] = [];
 
   try {
+    console.log("All pages:", getAll());
     [slackRaw, localRaw] = await Promise.all([
       (searchSlack(query) as unknown as Promise<RawResult[]>),
-      (searchLocal(query) as unknown as Promise<RawResult[]>),
+      Promise.resolve(searchLocal(query)),
     ]);
     console.log("Normalized Slack results:", slackRaw);
+    console.log("Normalized Local results:", localRaw);
   } catch (err) {
     console.error("Unified search failed:", err);
   }

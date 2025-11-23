@@ -1,6 +1,15 @@
 import Database from "better-sqlite3";
+import path from "path";
+import { fileURLToPath } from "url";
 
-const db = new Database("notion.db"); // persisted between launches
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Get the backend root directory (go up from src/local to backend root)
+const backendRoot = path.resolve(__dirname, "../..");
+const dbPath = path.join(backendRoot, "notion.db");
+
+const db = new Database(dbPath); // Use absolute path
 db.pragma("journal_mode = WAL");
 
 db.exec(`
@@ -35,13 +44,25 @@ export const upsertPage = (p: {
 export const getAll = () => db.prepare("SELECT * FROM pages").all();
 
 export const searchLocal = (query: string) => {
-  const stmt = db.prepare(`
-    SELECT * FROM pages
-     WHERE title LIKE '%' || ? || '%'
-        OR content LIKE '%' || ? || '%'
-     ORDER BY lastEditedTime DESC;
-  `);
-  return stmt.all(query, query);
-};
+    const stmt = db.prepare(`
+      SELECT * FROM pages
+       WHERE title LIKE '%' || ? || '%'
+          OR content LIKE '%' || ? || '%'
+       ORDER BY lastEditedTime DESC;
+    `);
+    const results = stmt.all(query, query);
+    
+    // Transform to match RawResult interface expected by unifiedSearch
+    return results.map((row: any) => ({
+      source: "notion",
+      title: row.title || "Untitled",
+      content: row.content || "",
+      url: row.url,
+      date: row.lastEditedTime,
+      metadata: {
+        date: row.lastEditedTime
+      }
+    }));
+  };
 
 export default db;
