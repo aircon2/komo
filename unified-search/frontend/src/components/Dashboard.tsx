@@ -187,6 +187,12 @@ export function Dashboard({ searchQuery, activeApps, onBack, onSearchChange }: D
         }
         const summaryData: SummaryResponse = await summaryResponse.json();
         console.log("✅ Summary received:", summaryData);
+        console.log("🔍 Summary structure:", {
+          hasSummary: !!summaryData.summary,
+          summaryType: typeof summaryData.summary,
+          isArray: Array.isArray(summaryData.summary),
+          summaryValue: summaryData.summary
+        });
         
         // Handle different summary response formats
         let summaryText = "";
@@ -198,30 +204,47 @@ export function Dashboard({ searchQuery, activeApps, onBack, onSearchChange }: D
             if (typeof summaryData.summary === "object" && !Array.isArray(summaryData.summary)) {
               // Nested object format: { summary: { summary: [...] } }
               const nested = summaryData.summary as any;
+              console.log("🔍 Nested summary object:", nested);
+              
               if (Array.isArray(nested.summary)) {
                 summaryArray = nested.summary;
+                console.log("✅ Found array in nested.summary:", summaryArray.length, "items");
               } else if (Array.isArray(nested)) {
                 summaryArray = nested;
+                console.log("✅ Found array directly in nested:", summaryArray.length, "items");
+              } else {
+                console.warn("⚠️ Nested object but no array found:", nested);
               }
             } else if (Array.isArray(summaryData.summary)) {
               // Direct array format
               summaryArray = summaryData.summary;
+              console.log("✅ Found direct array:", summaryArray.length, "items");
             } else if (typeof summaryData.summary === "string") {
               // Fallback: if it's already a string
               summaryText = summaryData.summary;
+              console.log("✅ Using string summary directly");
             }
             
             if (Array.isArray(summaryArray) && summaryArray.length > 0) {
+              console.log("📝 Formatting", summaryArray.length, "summary items");
               // Format the summary array into readable HTML
               summaryText = summaryArray.map((item: SummaryItem) => {
                 const topic = (item.topic || "Topic").replace(/</g, "&lt;").replace(/>/g, "&gt;");
                 const summary = (item.summary || "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                return `<p class="font-['Hanken_Grotesk:Bold',sans-serif] font-bold mb-2">${topic}</p><p class="mb-3">${summary}</p>`;
+                const references = item.references && item.references.length > 0
+                  ? `<p class="text-xs text-gray-500 mt-1">References: ${item.references.map(ref => `<a href="${ref}" target="_blank" rel="noopener noreferrer" class="underline text-blue-600 hover:text-blue-800">${new URL(ref).hostname}</a>`).join(', ')}</p>`
+                  : '';
+                return `<p class="font-['Hanken_Grotesk:Bold',sans-serif] font-bold mb-2">${topic}</p><p class="mb-3">${summary}</p>${references}`;
               }).join("");
+              console.log("✅ Formatted summary text length:", summaryText.length);
+            } else {
+              console.warn("⚠️ No summary array found or array is empty");
             }
+          } else {
+            console.warn("⚠️ No summary property in response");
           }
         } catch (summaryError) {
-          console.error("Error parsing summary:", summaryError);
+          console.error("❌ Error parsing summary:", summaryError);
           summaryText = "Summary format error. Please try again.";
         }
         
