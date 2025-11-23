@@ -84,13 +84,6 @@ export async function searchSlack(query: string): Promise<SearchResult[]> {
         };
       })
     );
-
-    // Pretty‑print threads for easier inspection
-    console.log(
-      "Normalized Slack results:",
-      JSON.stringify(results, null, 2)
-    );
-
     return results;
   } catch (err: any) {
     console.error("Slack search failed:", err.message);

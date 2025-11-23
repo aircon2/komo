@@ -22,7 +22,6 @@ export async function unifiedSearch(
   let localRaw: RawResult[] = [];
 
   try {
-    console.log("All pages:", getAll());
     [slackRaw, localRaw] = await Promise.all([
       (searchSlack(query) as unknown as Promise<RawResult[]>),
       Promise.resolve(searchLocal(query)),
@@ -30,6 +29,7 @@ export async function unifiedSearch(
   } catch (err) {
     console.error("Unified search failed:", err);
   }
+
 
   const taggedSlack = (slackRaw ?? []).map((item) => ({
     ...item,
@@ -48,6 +48,8 @@ export async function unifiedSearch(
     if (!a.date || !b.date) return 0;
     return new Date(b.date).getTime() - new Date(a.date).getTime();
   });
+
+//   console.log("Normalized results:", normalized);
 
   return normalized;
 }

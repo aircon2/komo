@@ -8,19 +8,22 @@ const router = express.Router();
 
 router.get("/", async (req, res) => {
   const q = String(req.query.q || "");
-  const sources = String(req.query.sources || "slack,notion").split(",");
+
 
   try {
-    const rawResults: any[] = [];
+    // 1️⃣ Perform unified search
+    const { unifiedSearch } = await import("../shared/services/unifiedSearch.js");
 
-    if (sources.includes("slack")) rawResults.push(...(await searchSlack(q)));
-    if (sources.includes("notion")) rawResults.push(...(await searchLocal(q)));
+    const results = await unifiedSearch(q);
+    console.log("preSSR Import");
+    const {summarizeSearchResults} = await import("../shared/services/summarizeService.js");
+    const summary = await summarizeSearchResults(q, results);
+    console.log("Summary:", JSON.stringify(summary, null, 2)); 
 
-    // 1️⃣ Normalize all data into unified structure
-    const normalized = normalizeResults(rawResults);
+
 
     // 2️⃣ Generate summary JSON via AI
-    const summary = await summarizeSearchResults(q, normalized);
+    // const summary = await summarizeSearchResults(q, normalized);
 
     // 3️⃣ Send back
     res.json({ query: q, summary });

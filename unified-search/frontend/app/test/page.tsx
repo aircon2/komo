@@ -20,7 +20,7 @@ const SearchPage: React.FC = () => {
     fetch(`http://localhost:3000/api/search?q=${encodeURIComponent(value)}`)
       .then((res) => res.json())
       .then((data) => {
-        setResults(data.results ?? []);
+        setResults(Array.isArray(data) ? data : []);
       })
       .catch((err) => {
         console.error("Error fetching search results", err);
@@ -30,13 +30,11 @@ const SearchPage: React.FC = () => {
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && query.trim()) {
-      fetch("/api/summarize", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query }),
-      })
+        fetch(`http://localhost:3000/api/summarize?q=${encodeURIComponent(query)}`)
         .then((res) => res.json())
-        .then((data) => setSummary(data.summary ?? ""))
+        .then((data) => {
+          setSummary(data.summary ? JSON.stringify(data.summary, null, 2) : "");
+        })
         .catch((err) => {
           console.error("Error fetching summary", err);
           setSummary("Error fetching summary");
