@@ -80,6 +80,8 @@
   --sidebar-ring: oklch(0.439 0 0);
 }
 
+
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -128,6 +130,8 @@
 
   body {
     @apply bg-background text-foreground;
+    /* Use the instrument font variable (set by next/font/local in layout.tsx) if available */
+    font-family: var(--font-instrument, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans', sans-serif);
   }
 }
 

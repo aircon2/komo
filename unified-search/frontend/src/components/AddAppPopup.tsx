@@ -1,4 +1,6 @@
-import { MessageSquare, FileText, X, Check } from "lucide-react";
+import { X, Check } from "lucide-react";
+import slack from "../assets/slack.png";
+import notion from "../assets/notion.png";
 
 interface AddAppPopupProps {
   onClose: () => void;
@@ -12,7 +14,7 @@ export function AddAppPopup({ onClose, onAddApp, addedApps }: AddAppPopupProps) 
       <div className="relative bg-white rounded-[30px] w-[520px] px-[60px] py-[50px] shadow-2xl animate-in zoom-in-95 duration-200">
         {/* Blue border */}
         <div aria-hidden="true" className="absolute border-[3px] border-[#051b78] border-solid inset-0 pointer-events-none rounded-[30px]" />
-        
+
         {/* Close button */}
         <button
           onClick={onClose}
@@ -22,7 +24,7 @@ export function AddAppPopup({ onClose, onAddApp, addedApps }: AddAppPopupProps) 
         </button>
 
         {/* Title */}
-        <h2 className="font-['Instrument_Serif:Regular',sans-serif] text-[40px] text-black mb-[35px]">
+        <h2 className="text-[40px] text-black mb-[35px]">
           choose your app:
         </h2>
 
@@ -36,13 +38,13 @@ export function AddAppPopup({ onClose, onAddApp, addedApps }: AddAppPopupProps) 
               }
             }}
             disabled={addedApps.Slack}
-            className={`relative flex items-center gap-[10px] px-[18px] py-[10px] rounded-[10px] border-2 transition-all ${
-              addedApps.Slack
-                ? "border-[#34C759] bg-[#34C759]/10 cursor-not-allowed"
-                : "border-[#8e8e93] hover:border-[#051b78] cursor-pointer"
-            }`}
+            className={`relative flex items-center gap-[10px] px-[18px] py-[10px] rounded-[10px] border-2 transition-all ${addedApps.Slack
+              ? "border-[#34C759] bg-[#34C759]/10 cursor-not-allowed"
+              : "border-[#8e8e93] hover:border-[#051b78] cursor-pointer"
+              }`}
           >
-            <MessageSquare className="size-[24px] text-[#4A154B]" />
+            {/* <MessageSquare className="size-[24px] text-[#4A154B]" /> */}
+            <img src={slack.src} alt="Slack Logo" className="size-[24px] object-contain" />
             <span className="font-['Hanken_Grotesk:Regular',sans-serif] text-[18px] text-black">
               Slack
             </span>
@@ -59,13 +61,13 @@ export function AddAppPopup({ onClose, onAddApp, addedApps }: AddAppPopupProps) 
               }
             }}
             disabled={addedApps.Notion}
-            className={`relative flex items-center gap-[10px] px-[18px] py-[10px] rounded-[10px] border-2 transition-all ${
-              addedApps.Notion
-                ? "border-[#34C759] bg-[#34C759]/10 cursor-not-allowed"
-                : "border-[#8e8e93] hover:border-[#051b78] cursor-pointer"
-            }`}
+            className={`relative flex items-center gap-[10px] px-[18px] py-[10px] rounded-[10px] border-2 transition-all ${addedApps.Notion
+              ? "border-[#34C759] bg-[#34C759]/10 cursor-not-allowed"
+              : "border-[#8e8e93] hover:border-[#051b78] cursor-pointer"
+              }`}
           >
-            <FileText className="size-[24px] text-black" />
+            {/* <FileText className="size-[24px] text-black" /> */}
+            <img src={notion.src} alt="Notion Logo" className="size-[24px] object-contain" />
             <span className="font-['Hanken_Grotesk:Regular',sans-serif] text-[18px] text-black">
               Notion
             </span>

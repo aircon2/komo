@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { SearchResultItem } from "./SearchResultItem";
 import { NotionPopup } from "./NotionPopup";
-import { Cloud, CornerDownLeft, ArrowLeft } from "lucide-react";
+import { CornerDownLeft, ArrowLeft } from "lucide-react";
+import sadcloud from "../assets/sadcloud.png";
+
 
 interface DashboardProps {
   searchQuery: string;
@@ -74,14 +76,14 @@ export function Dashboard({ searchQuery, activeApps, onBack, onSearchChange }: D
   const filteredResults = mockSearchResults.filter(result => {
     if (result.type === "slack" && !activeApps.Slack) return false;
     if (result.type === "notion" && !activeApps.Notion) return false;
-    
+
     // Filter by search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       const messageText = result.message.replace(/<[^>]*>/g, '').toLowerCase(); // Remove HTML tags
       return messageText.includes(query);
     }
-    
+
     return true;
   });
 
@@ -121,12 +123,12 @@ export function Dashboard({ searchQuery, activeApps, onBack, onSearchChange }: D
           type="text"
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="prompt here"
-          className="flex-1 bg-transparent border-none outline-none font-['Instrument_Serif:Regular',sans-serif] leading-[normal] not-italic text-[32px] text-black placeholder:text-[rgba(60,60,67,0.6)] cursor-text"
+          placeholder="what are you looking for?"
+          className="flex-1 bg-transparent border-none outline-none leading-[normal] not-italic text-[32px] text-black placeholder:text-[rgba(60,60,67,0.6)] cursor-text"
           onKeyDown={handleKeyDown}
         />
         <div className="content-stretch flex gap-[3px] items-center justify-end">
-          <p className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal leading-[normal] text-[#3d3d3d] text-[17.157px] text-nowrap whitespace-pre">enter</p>
+          <p className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal leading-[normal] text-[#3d3d3d] text-[17.157px] text-nowrap whitespace-pre">enter </p>
           <ReturnKeyIcon />
         </div>
       </div>
@@ -157,7 +159,7 @@ export function Dashboard({ searchQuery, activeApps, onBack, onSearchChange }: D
       {/* Main container with border */}
       <div className="absolute left-[60px] rounded-[20px] top-[130px] right-[60px] bottom-[60px] max-h-[calc(100vh-190px)]">
         <div aria-hidden="true" className="absolute border-4 border-[#051b78] border-solid inset-0 pointer-events-none rounded-[20px]" />
-        
+
         {/* Vertical divider */}
         <div className="absolute left-1/2 top-0 bottom-0 w-[4px] -ml-[2px]">
           <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 4 636">
@@ -167,13 +169,13 @@ export function Dashboard({ searchQuery, activeApps, onBack, onSearchChange }: D
 
         {/* Left side - Search Results */}
         <div className="absolute left-0 top-0 bottom-0 w-1/2 overflow-hidden">
-          <p className="absolute font-['Instrument_Serif:Regular',sans-serif] leading-[normal] left-[30px] not-italic text-[28px] text-black text-nowrap top-[30px] whitespace-pre">
+          <p className="absolute leading-[normal] left-[30px] not-italic text-[28px] text-black text-nowrap top-[30px] whitespace-pre">
             search results
           </p>
           <div className="absolute h-0 left-[31px] top-[70px] w-[145px]">
             <div className="absolute bottom-0 left-0 right-0 top-[-2px]">
               <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 165 2">
-                <line stroke="var(--stroke-0, #051B78)" strokeWidth="2" x2="165" y1="1" y2="1" />
+                <line stroke="var(--stroke-0, #051B78)" strokeWidth="2" x2="150" y1="1" y2="1" />
               </svg>
             </div>
           </div>
@@ -198,13 +200,13 @@ export function Dashboard({ searchQuery, activeApps, onBack, onSearchChange }: D
         {/* Right side - Summary & Information (always shown) */}
         <div className="absolute right-0 top-0 bottom-0 w-1/2 overflow-hidden">
           {/* Summary section */}
-          <p className="absolute font-['Instrument_Serif:Regular',sans-serif] leading-[normal] left-[30px] not-italic text-[28px] text-black text-nowrap top-[30px] whitespace-pre">
+          <p className="absolute leading-[normal] left-[30px] not-italic text-[28px] text-black text-nowrap top-[30px] whitespace-pre">
             summary
           </p>
           <div className="absolute h-0 left-[30px] top-[70px] w-[105px]">
             <div className="absolute bottom-0 left-0 right-0 top-[-2px]">
               <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 125 2">
-                <line stroke="var(--stroke-0, #051B78)" strokeWidth="2" x2="125" y1="1" y2="1" />
+                <line stroke="var(--stroke-0, #051B78)" strokeWidth="2" x2="120" y1="1" y2="1" />
               </svg>
             </div>
           </div>
@@ -233,13 +235,13 @@ export function Dashboard({ searchQuery, activeApps, onBack, onSearchChange }: D
           </div>
 
           {/* Information section */}
-          <p className="absolute font-['Instrument_Serif:Regular',sans-serif] leading-[normal] left-[30px] not-italic text-[28px] text-black text-nowrap top-[calc(58%+25px)] whitespace-pre">
+          <p className="absolute leading-[normal] left-[30px] not-italic text-[28px] text-black text-nowrap top-[calc(58%+25px)] whitespace-pre">
             information
           </p>
           <div className="absolute h-0 left-[30px] top-[calc(58%+65px)] w-[130px]">
             <div className="absolute bottom-0 left-0 right-0 top-[-2px]">
               <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 150 2">
-                <line stroke="var(--stroke-0, #051B78)" strokeWidth="2" x2="150" y1="1" y2="1" />
+                <line stroke="var(--stroke-0, #051B78)" strokeWidth="2" x2="140" y1="1" y2="1" />
               </svg>
             </div>
           </div>
@@ -260,17 +262,17 @@ export function Dashboard({ searchQuery, activeApps, onBack, onSearchChange }: D
                 <span className="text-black">Jan 1, 2026</span>
               </div>
             </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full max-h-[180px]">
-                <p className="font-['Hanken_Grotesk:Regular',sans-serif] text-[15px] text-[#8e8e93] mb-3">
-                  This space is all clear!
-                </p>
-                <Cloud className="w-[80px] h-[80px] text-[#8e8e93] mb-3" />
-                <p className="font-['Hanken_Grotesk:Regular',sans-serif] text-[15px] text-[#8e8e93]">
-                  Try selecting a search result to explore.
-                </p>
-              </div>
-            )}
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full max-h-[180px]">
+              <p className="font-['Hanken_Grotesk:Regular',sans-serif] text-[15px] text-[#8e8e93] mb-3">
+                this space is all clear!
+              </p>
+              <img src={sadcloud.src} alt="Sad Cloud" className="w-[80px] h-[80px] object-contain mb-3" />
+              <p className="font-['Hanken_Grotesk:Regular',sans-serif] text-[15px] text-[#8e8e93]">
+                try selecting a search result to explore.
+              </p>
+            </div>
+          )}
           </div>
         </div>
       </div>

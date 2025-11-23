@@ -1,4 +1,5 @@
-import { MessageSquare, FileText } from "lucide-react";
+import slack from "../assets/slack.png";
+import notion from "../assets/notion.png";
 
 interface AppChipProps {
   app: string;
@@ -7,7 +8,7 @@ interface AppChipProps {
 }
 
 export function AppChip({ app, isActive, onToggle }: AppChipProps) {
-  const Icon = app === "Slack" ? MessageSquare : FileText;
+  const iconImg = app === "Slack" ? slack : notion;
 
   return (
     <button onClick={onToggle} className="relative inline-flex items-center h-[37px] px-[16px] group">
@@ -20,8 +21,8 @@ export function AppChip({ app, isActive, onToggle }: AppChipProps) {
               width={isActive ? "108.5" : "108.24"}
               height={isActive ? "35" : "35.0"}
               rx={isActive ? "8" : "8.10066"}
-              shapeRendering="crispEdges" 
-              stroke={isActive ? "#50C878" : "#8E8E93"} 
+              shapeRendering="crispEdges"
+              stroke={isActive ? "#50C878" : "#8E8E93"}
               strokeWidth={isActive ? "2" : "0.48"}
               fill="none"
             />
@@ -41,7 +42,7 @@ export function AppChip({ app, isActive, onToggle }: AppChipProps) {
         </svg>
       </div>
       <div className="relative flex items-center gap-2 z-10">
-        <Icon className="size-[30px] text-black" />
+        <img src={iconImg.src} alt={app} className="size-[20px] object-contain" />
         <span className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal text-[16px] text-black whitespace-nowrap">
           {app}
         </span>

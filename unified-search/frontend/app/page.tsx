@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import svgPaths from "../src/imports/svg-mtjcj8eugv";
+import logo2 from "../src/assets/logo2.png";
 import returnKeySvgPaths from "../src/imports/svg-fl3ymrnpwd";
 import { Background } from "../src/components/Background";
 import { CloudCharacter } from "../src/components/CloudCharacter";
@@ -71,9 +72,12 @@ export default function Home() {
   ];
 
   const filteredResults = mockSearchResults.filter(result => {
+    // Only show results for active apps
     if (result.type === "slack" && !activeApps.Slack) return false;
     if (result.type === "notion" && !activeApps.Notion) return false;
-    return true;
+    // Only show results that contain the exact search query (case-insensitive substring match)
+    if (!searchQuery.trim()) return false;
+    return result.message.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
   const handleToggleApp = (app: string) => {
@@ -102,7 +106,7 @@ export default function Home() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchQuery(value);
-    
+
     // Show results immediately if there's text and at least one app is active
     if (value.trim() && Object.values(activeApps).some(active => active)) {
       setShowSearchResults(true);
@@ -129,13 +133,13 @@ export default function Home() {
     "meeting notes"
   ];
 
-  const filteredSuggestions = suggestions.filter(s => 
+  const filteredSuggestions = suggestions.filter(s =>
     s.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   if (showDashboard) {
     return (
-      <Dashboard 
+      <Dashboard
         searchQuery={searchQuery}
         activeApps={activeApps}
         onBack={handleBackToSearch}
@@ -150,15 +154,13 @@ export default function Home() {
 
       {/* Logo */}
       <div className="absolute box-border content-stretch flex flex-col items-start leading-[normal] left-[57px] pb-0 pt-0 px-0 top-[28px] w-[125px]">
-        <p className="font-['Instrument_Serif:Regular',sans-serif] not-italic relative shrink-0 text-[64px] text-black w-full leading-[0.9]">komo</p>
-        <p className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal relative shrink-0 text-[#c6c6c8] text-[18px] w-full">get into it.</p>
+        <img src={logo2.src} alt="komo" className="relative shrink-0 w-full h-[100px] object-contain" />
       </div>
 
       {/* Main content area - animates up when search results appear */}
-      <div 
-        className={`absolute left-[374px] right-[374px] transition-all duration-300 ease-in-out ${
-          showSearchResults ? 'top-[67px]' : 'top-[297px]'
-        }`}
+      <div
+        className={`absolute left-[374px] right-[374px] transition-all duration-300 ease-in-out ${showSearchResults ? 'top-[67px]' : 'top-[297px]'
+          }`}
       >
         {/* Question text - now as placeholder in input */}
         <input
@@ -167,7 +169,7 @@ export default function Home() {
           onChange={handleInputChange}
           onKeyPress={handleKeyPress}
           placeholder="what are you looking for?"
-          className="w-full bg-transparent border-none outline-none font-['Instrument_Serif:Regular',sans-serif] not-italic text-[40px] text-black placeholder:text-[rgba(60,60,67,0.6)] mb-[18px]"
+          className="w-full bg-transparent border-none outline-none not-italic text-[40px] text-black placeholder:text-[rgba(60,60,67,0.6)] mb-[10px]"
         />
 
         {/* Line under question */}
@@ -261,7 +263,7 @@ export default function Home() {
                 <div className="size-[24px]">
                   <AddIcon />
                 </div>
-                <span className="font-['Instrument_Serif:Regular',sans-serif] leading-[normal] not-italic text-[25px] text-[rgba(60,60,67,0.6)] whitespace-pre">
+                <span className="leading-[normal] not-italic text-[20px] text-[rgba(60,60,67,0.6)] whitespace-pre">
                   {hasAddedApps ? "add" : "new item"}
                 </span>
               </div>
@@ -272,17 +274,17 @@ export default function Home() {
         {/* Enter hint when search results are showing */}
         {showSearchResults && (
           <div className="absolute right-0 top-[30px] content-stretch flex gap-[3px] items-center justify-end">
-            <p className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal leading-[normal] text-[#3d3d3d] text-[17.157px] text-nowrap whitespace-pre">enter here</p>
+            <p className="font-['Hanken_Grotesk:Regular',sans-serif] font-normal leading-[normal] text-[#3d3d3d] text-[17.157px] text-nowrap whitespace-pre ">enter </p>
             <div className="relative shrink-0 size-[24.02px]">
               <div className="absolute inset-[-5.71%_-11.43%_-17.14%_-11.43%]">
                 <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 30 30">
                   <g id="Group 75">
                     <g filter="url(#filter0_d_enter_key)" id="Rectangle 1">
-                      <path d={returnKeySvgPaths.p2ebec280} shapeRendering="crispEdges" stroke="var(--stroke-0, #8E8E93)" strokeWidth="0.686275" />
+                      <path d={returnKeySvgPaths.p2ebec280} shapeRendering="crispEdges" stroke="var(--stroke-0, #3d3d3d)" strokeWidth="0.686275" />
                     </g>
                     <g id="keyboard_return">
                       <g id="icon">
-                        <path d={returnKeySvgPaths.p319d7a00} fill="#7F7F7F" fillOpacity="0.5" style={{ mixBlendMode: "luminosity" }} />
+                        <path d={returnKeySvgPaths.p319d7a00} fill="#3d3d3d" fillOpacity="0.5" style={{ mixBlendMode: "luminosity" }} />
                         <path d={returnKeySvgPaths.p319d7a00} fill="#3D3D3D" style={{ mixBlendMode: "overlay" }} />
                       </g>
                     </g>
