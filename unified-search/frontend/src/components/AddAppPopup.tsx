@@ -46,7 +46,11 @@ export function AddAppPopup({ onClose, onAddApp, addedApps }: AddAppPopupProps) 
                 : "border-[#8e8e93] hover:border-[#051b78] cursor-pointer"
             }`}
           >
-            <img src={imgSlack} alt="Slack" className="size-[24px] rounded-[4px]" />
+            <img
+            src={imgSlack.src}
+            alt="Slack"
+            className="size-[24px] rounded-[4px]"
+            />
             <span className="font-['Hanken_Grotesk:Regular',sans-serif] text-[18px] text-black">
               Slack
             </span>
@@ -71,7 +75,11 @@ export function AddAppPopup({ onClose, onAddApp, addedApps }: AddAppPopupProps) 
                 : "border-[#8e8e93] hover:border-[#051b78] cursor-pointer"
             }`}
           >
-            <img src={imgNotion} alt="Notion" className="size-[24px] rounded-[4px]" />
+            <img
+            src={imgNotion.src}
+            alt="Notion"
+            className="size-[24px] rounded-[4px]"
+            />
             <span className="font-['Hanken_Grotesk:Regular',sans-serif] text-[18px] text-black">
               Notion
             </span>
