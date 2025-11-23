@@ -1,5 +1,16 @@
 @import "tailwindcss";
 
+@keyframes glow {
+  0%, 100% {
+    opacity: 0.5;
+    box-shadow: 0 0 10px rgba(5, 27, 120, 0.5), 0 0 20px rgba(5, 27, 120, 0.3);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 20px rgba(5, 27, 120, 0.8), 0 0 30px rgba(5, 27, 120, 0.5), 0 0 40px rgba(5, 27, 120, 0.3);
+  }
+}
+
 @custom-variant dark (&:is(.dark *));
 
 :root {

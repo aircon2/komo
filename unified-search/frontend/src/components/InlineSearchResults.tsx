@@ -8,6 +8,7 @@ interface SearchResult {
   type: "slack" | "notion";
   message: string;
   date?: string;
+  link?: string;
 }
 
 interface InlineSearchResultsProps {
@@ -16,6 +17,7 @@ interface InlineSearchResultsProps {
   onSelectIndex: (index: number) => void;
   onOpenResult: () => void;
   searchQuery: string;
+  onOpenLink?: (link: string) => void; // Optional callback for opening links
 }
 
 function ReturnKeyIcon() {
@@ -28,7 +30,7 @@ function ReturnKeyIcon() {
   );
 }
 
-export function InlineSearchResults({ results, selectedIndex, onSelectIndex, onOpenResult, searchQuery }: InlineSearchResultsProps) {
+export function InlineSearchResults({ results, selectedIndex, onSelectIndex, onOpenResult, searchQuery, onOpenLink }: InlineSearchResultsProps) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "ArrowDown") {
@@ -39,13 +41,23 @@ export function InlineSearchResults({ results, selectedIndex, onSelectIndex, onO
         onSelectIndex(Math.max(selectedIndex - 1, 0));
       } else if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
         e.preventDefault();
-        onOpenResult();
+        // Cmd+Enter: Open link if available, otherwise use onOpenResult
+        const selectedResult = results[selectedIndex];
+        if (selectedResult && selectedResult.link) {
+          if (onOpenLink) {
+            onOpenLink(selectedResult.link);
+          } else {
+            window.open(selectedResult.link, '_blank', 'noopener,noreferrer');
+          }
+        } else {
+          onOpenResult();
+        }
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedIndex, results.length, onSelectIndex, onOpenResult]);
+  }, [selectedIndex, results.length, onSelectIndex, onOpenResult, results, onOpenLink]);
 
   // Function to highlight matching text
   const highlightText = (text: string, query: string) => {
@@ -73,10 +85,24 @@ export function InlineSearchResults({ results, selectedIndex, onSelectIndex, onO
                 const isSelected = index === selectedIndex;
                 const iconImg = result.type === "slack" ? slack : notion;
 
+                const handleClick = (e: React.MouseEvent) => {
+                  // Cmd+Click (Mac) or Ctrl+Click (Windows/Linux) opens link in new tab
+                  if (e.metaKey || e.ctrlKey) {
+                    if (result.link) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      window.open(result.link, '_blank', 'noopener,noreferrer');
+                      return;
+                    }
+                  }
+                  // Regular click selects the item
+                  onSelectIndex(index);
+                };
+
                 return (
                   <button
                     key={result.id}
-                    onClick={() => onSelectIndex(index)}
+                    onClick={handleClick}
                     onDoubleClick={onOpenResult}
                     className={`relative w-full text-left py-[12px] px-[12px] -mx-[12px] rounded-[8px] transition-colors ${isSelected ? 'bg-[rgba(5,27,120,0.15)]' : 'hover:bg-[rgba(5,27,120,0.05)]'
                       }`}

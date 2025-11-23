@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { SearchResultItem } from "./SearchResultItem";
 import { NotionPopup } from "./NotionPopup";
+import { SlackPopup } from "./SlackPopup";
 import { CornerDownLeft, ArrowLeft } from "lucide-react";
 import sadcloud from "../assets/sadcloud.png";
 import { extractTextSnippet, highlightText } from "../utils/textSnippet";
@@ -20,6 +21,7 @@ interface SearchResult {
   message: string;
   date: string;
   fullText?: string; // Full text for Notion pages
+  link?: string; // Link for thread reconstruction
   metadata?: {
     author?: string;
     channel?: string;
@@ -62,8 +64,15 @@ function ReturnKeyIcon() {
 export function Dashboard({ searchQuery, activeApps, onBack, onSearchChange }: DashboardProps) {
   const [selectedResult, setSelectedResult] = useState<string | null>(null);
   const [showNotionPopup, setShowNotionPopup] = useState(false);
+  const [showSlackPopup, setShowSlackPopup] = useState(false);
   const [selectedNotionData, setSelectedNotionData] = useState<{ title: string; text: string } | null>(null);
+  const [selectedSlackData, setSelectedSlackData] = useState<{
+    channel: string;
+    mainMessage: { text: string; author: string; date: string };
+    threadReplies: { text: string; author: string; date: string }[];
+  } | null>(null);
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [allBackendResults, setAllBackendResults] = useState<BackendSearchResult[]>([]); // Store all backend results to reconstruct threads
   const [summary, setSummary] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -102,6 +111,9 @@ export function Dashboard({ searchQuery, activeApps, onBack, onSearchChange }: D
         }
         const backendResults: BackendSearchResult[] = await searchResponse.json();
         console.log("✅ Search results received:", backendResults.length, "items");
+        
+        // Store all backend results for thread reconstruction
+        setAllBackendResults(backendResults);
 
         // Transform backend results to frontend format
         const transformedResults: SearchResult[] = backendResults
@@ -140,6 +152,7 @@ export function Dashboard({ searchQuery, activeApps, onBack, onSearchChange }: D
               message: highlightedText || "No content",
               date: dateStr,
               fullText: result.source === "notion" ? result.text : undefined, // Store full text for Notion
+              link: result.link, // Store link for thread reconstruction
               metadata: {
                 author: result.author,
                 channel: result.source === "slack" ? result.title : undefined,
@@ -242,19 +255,62 @@ export function Dashboard({ searchQuery, activeApps, onBack, onSearchChange }: D
 
   const handleResultClick = (result: SearchResult) => {
     setSelectedResult(result.id);
+    
     if (result.type === "notion" && result.metadata?.title && result.fullText) {
       setSelectedNotionData({
         title: result.metadata.title,
         text: result.fullText,
       });
       setShowNotionPopup(true);
+    } else if (result.type === "slack" && result.metadata?.channel && result.link) {
+      // Reconstruct thread from backend results
+      // Find all messages with the same link (they're part of the same thread)
+      const threadMessages = allBackendResults.filter(
+        (r) => r.source === "slack" && r.link === result.link
+      );
+      
+      // Sort by date to get chronological order (main message first, then replies)
+      const sortedMessages = threadMessages.sort((a, b) => {
+        const dateA = a.date ? new Date(a.date).getTime() : 0;
+        const dateB = b.date ? new Date(b.date).getTime() : 0;
+        return dateA - dateB;
+      });
+      
+      if (sortedMessages.length > 0) {
+        const mainMessage = sortedMessages[0];
+        const threadReplies = sortedMessages.slice(1);
+        
+        setSelectedSlackData({
+          channel: result.metadata.channel,
+          mainMessage: {
+            text: mainMessage.text || "",
+            author: mainMessage.author || "Unknown",
+            date: mainMessage.date || "",
+          },
+          threadReplies: threadReplies.map((reply) => ({
+            text: reply.text || "",
+            author: reply.author || "Unknown",
+            date: reply.date || "",
+          })),
+        });
+        setShowSlackPopup(true);
+      }
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      // Re-render/refresh the dashboard with current search
-      setSelectedResult(null); // Reset selection to show first result
+      if (e.metaKey || e.ctrlKey) {
+        // Cmd+Enter: Open the selected result's link
+        const selectedResult = filteredResults.find(r => r.id === effectiveSelectedResult);
+        if (selectedResult && selectedResult.link) {
+          e.preventDefault();
+          window.open(selectedResult.link, '_blank', 'noopener,noreferrer');
+        }
+      } else {
+        // Regular Enter: Re-render/refresh the dashboard with current search
+        setSelectedResult(null); // Reset selection to show first result
+      }
     }
   };
 
@@ -350,16 +406,17 @@ export function Dashboard({ searchQuery, activeApps, onBack, onSearchChange }: D
               </div>
             ) : (
               <div className="flex flex-col gap-[10px]">
-                {filteredResults.map(result => (
-                  <SearchResultItem
-                    key={result.id}
-                    type={result.type}
-                    message={result.message}
-                    date={result.date}
-                    isSelected={effectiveSelectedResult === result.id}
-                    onClick={() => handleResultClick(result)}
-                  />
-                ))}
+                {                      filteredResults.map(result => (
+                        <SearchResultItem
+                          key={result.id}
+                          type={result.type}
+                          message={result.message}
+                          date={result.date}
+                          link={result.link}
+                          isSelected={effectiveSelectedResult === result.id}
+                          onClick={() => handleResultClick(result)}
+                        />
+                      ))}
               </div>
             )}
           </div>
@@ -480,6 +537,20 @@ export function Dashboard({ searchQuery, activeApps, onBack, onSearchChange }: D
           onClose={() => {
             setShowNotionPopup(false);
             setSelectedNotionData(null);
+          }}
+        />
+      )}
+
+      {/* Slack Popup */}
+      {showSlackPopup && selectedSlackData && (
+        <SlackPopup
+          channel={selectedSlackData.channel}
+          mainMessage={selectedSlackData.mainMessage}
+          threadReplies={selectedSlackData.threadReplies}
+          searchQuery={searchQuery}
+          onClose={() => {
+            setShowSlackPopup(false);
+            setSelectedSlackData(null);
           }}
         />
       )}

@@ -48,7 +48,7 @@ export default function Home() {
   const [selectedResultIndex, setSelectedResultIndex] = useState(0);
   const [showAddAppPopup, setShowAddAppPopup] = useState(false);
   const [hasAddedApps, setHasAddedApps] = useState(false);
-  const [searchResults, setSearchResults] = useState<Array<{ id: string; type: "slack" | "notion"; message: string; date?: string }>>([]);
+  const [searchResults, setSearchResults] = useState<Array<{ id: string; type: "slack" | "notion"; message: string; date?: string; link?: string }>>([]);
   const [loading, setLoading] = useState(false);
 
   // Fetch search results from backend as user types
@@ -125,6 +125,7 @@ export default function Home() {
               type: result.source as "slack" | "notion",
               message: highlightedText || "No content",
               date: dateStr,
+              link: result.link, // Include link for Cmd+Click functionality
             };
           });
 
@@ -165,10 +166,10 @@ export default function Home() {
   };
 
   const handleOpenResult = () => {
-    // Cmd+Enter: Open the actual message in Slack/Notion (mock for now)
+    // Cmd+Enter: Open the actual message in Slack/Notion
     const selectedResult = filteredResults[selectedResultIndex];
-    if (selectedResult) {
-      alert(`Opening ${selectedResult.type} message: ${selectedResult.message.replace(/<[^>]*>/g, '')}`);
+    if (selectedResult && selectedResult.link) {
+      window.open(selectedResult.link, '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -272,6 +273,7 @@ export default function Home() {
             onSelectIndex={setSelectedResultIndex}
             onOpenResult={handleOpenResult}
             searchQuery={searchQuery}
+            onOpenLink={(link) => window.open(link, '_blank', 'noopener,noreferrer')}
           />
         )}
 
@@ -295,7 +297,7 @@ export default function Home() {
 
         {/* App chips and New Item button - hide when search results are showing */}
         {!showSearchResults && (
-          <div className="flex gap-3 items-center mt-[4px]">
+          <div className="flex gap-3 items-center mt-[4px] relative">
             {/* Only show app chips if apps have been added */}
             {hasAddedApps && (
               <>
@@ -307,27 +309,38 @@ export default function Home() {
             {/* Add button */}
             <button
               onClick={() => setShowAddAppPopup(true)}
-              className="relative h-[37px] group"
+              className={`relative h-[37px] group ${!hasAddedApps ? 'animate-pulse-glow' : ''}`}
             >
-              <div className="absolute inset-[-5.41%_-3.48%_-16.22%_-3.48%]" style={{ "--stroke-0": "rgba(142, 142, 147, 1)" } as React.CSSProperties}>
-                <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 123 45">
-                  <g filter="url(#filter0_d_add_btn)" id="Rectangle 1">
-                    <path d={svgPaths.p243f0080} shapeRendering="crispEdges" stroke="var(--stroke-0, #8E8E93)" className="group-hover:stroke-[#051B78] transition-colors" />
-                  </g>
-                  <defs>
-                    <filter colorInterpolationFilters="sRGB" filterUnits="userSpaceOnUse" height="45" id="filter0_d_add_btn" width="123" x="0" y="0">
-                      <feFlood floodOpacity="0" result="BackgroundImageFix" />
-                      <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
-                      <feOffset dy="2" />
-                      <feGaussianBlur stdDeviation="2" />
-                      <feComposite in2="hardAlpha" operator="out" />
-                      <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0" />
-                      <feBlend in2="BackgroundImageFix" mode="normal" result="effect1_dropShadow_1_970" />
-                      <feBlend in="SourceGraphic" in2="effect1_dropShadow_1_970" mode="normal" result="shape" />
-                    </filter>
-                  </defs>
-                </svg>
-              </div>
+              {/* Border - glowing when no apps added, regular when apps added */}
+              {!hasAddedApps ? (
+                <div 
+                  className="absolute inset-[-5.41%_-3.48%_-16.22%_-3.48%] rounded-[10px] border-2 border-[#051B78] pointer-events-none"
+                  style={{
+                    animation: 'glow 2s ease-in-out infinite',
+                    boxShadow: '0 0 10px rgba(5, 27, 120, 0.5), 0 0 20px rgba(5, 27, 120, 0.3)'
+                  }}
+                />
+              ) : (
+                <div className="absolute inset-[-5.41%_-3.48%_-16.22%_-3.48%]" style={{ "--stroke-0": "rgba(142, 142, 147, 1)" } as React.CSSProperties}>
+                  <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 123 45">
+                    <g filter="url(#filter0_d_add_btn)" id="Rectangle 1">
+                      <path d={svgPaths.p243f0080} shapeRendering="crispEdges" stroke="var(--stroke-0, #8E8E93)" className="group-hover:stroke-[#051B78] transition-colors" />
+                    </g>
+                    <defs>
+                      <filter colorInterpolationFilters="sRGB" filterUnits="userSpaceOnUse" height="45" id="filter0_d_add_btn" width="123" x="0" y="0">
+                        <feFlood floodOpacity="0" result="BackgroundImageFix" />
+                        <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
+                        <feOffset dy="2" />
+                        <feGaussianBlur stdDeviation="2" />
+                        <feComposite in2="hardAlpha" operator="out" />
+                        <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0" />
+                        <feBlend in2="BackgroundImageFix" mode="normal" result="effect1_dropShadow_1_970" />
+                        <feBlend in="SourceGraphic" in2="effect1_dropShadow_1_970" mode="normal" result="shape" />
+                      </filter>
+                    </defs>
+                  </svg>
+                </div>
+              )}
               <div className="relative flex items-center gap-2 px-4">
                 <div className="size-[24px]">
                   <AddIcon />
@@ -337,6 +350,20 @@ export default function Home() {
                 </span>
               </div>
             </button>
+
+            {/* Arrow and text pointing to button - only show when no apps added */}
+            {!hasAddedApps && (
+              <div className="absolute left-[140px] top-1/2 -translate-y-1/2 flex items-center gap-2">
+                {/* Arrow pointing left */}
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-[#051B78] shrink-0">
+                  <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                {/* Text */}
+                <span className="font-['Hanken_Grotesk:Regular',sans-serif] text-[15px] text-[rgba(60,60,67,0.6)] whitespace-nowrap">
+                  add an app to search
+                </span>
+              </div>
+            )}
           </div>
         )}
 
@@ -375,7 +402,7 @@ export default function Home() {
             </div>
           </div>
         )}
-      </div>
+        </div>
 
       {/* Cloud Character */}
       <CloudCharacter />

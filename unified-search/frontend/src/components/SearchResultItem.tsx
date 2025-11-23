@@ -6,15 +6,30 @@ interface SearchResultItemProps {
   message: string;
   date: string;
   isSelected: boolean;
+  link?: string;
   onClick: () => void;
 }
 
-export function SearchResultItem({ type, message, date, isSelected, onClick }: SearchResultItemProps) {
+export function SearchResultItem({ type, message, date, isSelected, link, onClick }: SearchResultItemProps) {
   const iconImg = type === "slack" ? slack : notion;
+
+  const handleClick = (e: React.MouseEvent) => {
+    // Cmd+Click (Mac) or Ctrl+Click (Windows/Linux) opens link in new tab
+    if (e.metaKey || e.ctrlKey) {
+      if (link) {
+        e.preventDefault();
+        e.stopPropagation();
+        window.open(link, '_blank', 'noopener,noreferrer');
+        return;
+      }
+    }
+    // Regular click shows popup
+    onClick();
+  };
 
   return (
     <button
-      onClick={onClick}
+      onClick={handleClick}
       className={`w-full flex items-center gap-[16px] py-3 px-2 rounded-lg transition-colors ${isSelected ? 'bg-[rgba(5,27,120,0.3)]' : 'hover:bg-[rgba(5,27,120,0.1)]'
         }`}
     >
